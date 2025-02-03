@@ -1,0 +1,20 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Divergent Cognitions"
+  reader-mode: true
+  navbar:
+    background: primary
+    right:
+      - about.qmd
+      - icon: github
+        href: https://github.com/matthew-hoctor
+format:
+  html:
+    theme: simplex
+    css: styles.css
+
+editor: source
+

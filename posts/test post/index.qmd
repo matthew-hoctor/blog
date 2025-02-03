@@ -1,0 +1,27 @@
+---
+title: "Test Post"
+author: "Matthew Hoctor"
+date: "2025-02-02"
+date-modified: last-modified
+categories: 
+  - test
+
+toc: true
+toc-depth: 4
+toc-expand: true        # https://quarto.org/docs/output-formats/html-basics.html#table-of-contents
+toc-location: left
+toc-title: Contents
+  
+code-fold: show
+code-overflow: wrap
+code-tools: true
+code-link: true
+
+editor: source
+---
+
+## A heading
+
+This is the first post in a Quarto blog. Welcome!
+
+![](thumbnail.jpg)
