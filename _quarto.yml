@@ -4,11 +4,14 @@ project:
 
 website:
   title: "Divergent Cognitions"
+  site-url: https://matthew-hoctor.github.io/blog/
   reader-mode: true
   navbar:
     background: primary
     right:
       - about.qmd
+      - icon: rss
+        href: index.xml
       - icon: github
         href: https://github.com/matthew-hoctor
 format:
