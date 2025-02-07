@@ -408,36 +408,7 @@ font-style: inherit;">)</span></span></code></pre></div>
 </div>
 <p>Here’s a peek of the the fully-MUNGE-ed dataset:</p>
 <div class="cell">
-<details open=""><summary>Code</summary><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">(</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">d</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">[</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">56</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">65</span>,<span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">]</span>, n <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">)</span></span></code></pre></div>
-</details><div class="cell-output cell-output-stdout">
+<div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 10 × 10
        Y     L    f1    f2    f3    f4    f5    f6    f7    f8
    &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;
@@ -456,7 +427,7 @@ font-style: inherit;">)</span></span></code></pre></div>
 </section><section id="brms-model" class="level3"><h3 class="anchored" data-anchor-id="brms-model">brms Model</h3>
 <p>Fortunately brms follows the standard <a href="https://academic.oup.com/jrsssc/article/22/3/392/6882728?login=false">Wilkinson formula</a> syntax (e.g.&nbsp;that of the R stats package, nlme, the Bayesian python package bambi, etc), so instead of writing out all of the variables in the formula we can specify the formula with <code>bf(Y ~ 0 + ., family = bernoulli)</code>, where <code>.</code> denotes the sum of all variables (other than the response variable, <code>Y</code>); here <code>0</code> tells to brms not to automatically add an intercept to the model.</p>
 <div class="cell">
-<details open=""><summary>Code</summary><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va" style="color: #111111;
+<details open=""><summary>Code</summary><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">BT_model</span> <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -548,9 +519,9 @@ background-color: null;
 font-style: inherit;">)</span></span></code></pre></div>
 </details>
 </div>
-<p>The seed used is <code>{r} seed</code>. Similarly, here’s the model from the paper and the solution set:</p>
+<p>The seed used is 1738912100. Similarly, here’s the model from the paper and the solution set:</p>
 <div class="cell">
-<details open=""><summary>Code</summary><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va" style="color: #111111;
+<details open=""><summary>Code</summary><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">model</span> <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -642,28 +613,20 @@ background-color: null;
 font-style: inherit;">)</span></span></code></pre></div>
 </details>
 </div>
-<p>The seed used for this one is <code>{r} seed</code>. Trace and trank plots look fine for both models; they will not be reproduced here.</p>
+<p>The seed used for this one is 1738912172. Trace and trank plots look fine for both models; they will not be reproduced here.</p>
 </section></section><section id="results" class="level2"><h2 class="anchored" data-anchor-id="results">Results</h2>
 <p>Here’s a tabulation of the the posterior probabilities with 89% HDI:</p>
 <div class="cell">
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Dropping 'draws_df' class as required metadata was removed.
-Warning: Dropping 'draws_df' class as required metadata was removed.</code></pre>
-</div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 7
-  Model         value .lower .upper .width .point .interval
-  &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    
-1 Base_Model -0.00195 -0.392  0.362   0.89 mean   hdi      
-2 BT_Model    0.0477  -0.466  0.546   0.89 mean   hdi      </code></pre>
+  Model        value .lower .upper .width .point .interval
+  &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    
+1 Base_Model 0.00112 -0.380  0.387   0.89 mean   hdi      
+2 BT_Model   0.0464  -0.448  0.613   0.89 mean   hdi      </code></pre>
 </div>
 </div>
 <p>And the posterior predictive plot:</p>
 <div class="cell">
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 10 rows containing non-finite outside the scale range
-(`stat_density()`).</code></pre>
-</div>
 <div class="cell-output-display">
 <p><img src="https://matthew-hoctor.github.io/blog/posts/UFC/index_files/figure-html/posterior_pred_plot-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -675,7 +638,8 @@ Warning: Dropping 'draws_df' class as required metadata was removed.</code></pre
 <!-- -->
 
 </section> ]]></description>
-  <category>draft</category>
+  <category>brms</category>
+  <category>Bayesian statistics</category>
   <guid>https://matthew-hoctor.github.io/blog/posts/UFC/index.html</guid>
   <pubDate>Sun, 02 Feb 2025 08:00:00 GMT</pubDate>
 </item>

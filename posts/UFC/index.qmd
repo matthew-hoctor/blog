@@ -4,7 +4,8 @@ author: "Matthew Hoctor"
 date: "2025-02-02"
 date-modified: last-modified
 categories: 
-  - draft
+  - brms
+  - Bayesian statistics
 
 draft: false
 
@@ -19,6 +20,7 @@ code-overflow: wrap
 code-tools: true
 code-link: true
 
+freeze: false
 execute: 
   echo: false
 
@@ -375,7 +377,7 @@ BT_model <- brm(
   seed = (seed <- as.integer(Sys.time())))
 ```
 
-The seed used is `{r}seed`.  Similarly, here's the model from the paper and the solution set:
+The seed used is `r seed`.  Similarly, here's the model from the paper and the solution set:
 
 ```{r model}
 #| echo: true
@@ -389,7 +391,7 @@ model <- brm(
   seed = (seed <- as.integer(Sys.time())))
 ```
 
-The seed used for this one is `{r}seed`.  Trace and trank plots look fine for both models; they will not be reproduced here.
+The seed used for this one is `r seed`.  Trace and trank plots look fine for both models; they will not be reproduced here.
 
 ## Results
 
