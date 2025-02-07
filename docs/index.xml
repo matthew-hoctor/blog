@@ -12,6 +12,674 @@
 <generator>quarto-1.3.450</generator>
 <lastBuildDate>Sun, 02 Feb 2025 08:00:00 GMT</lastBuildDate>
 <item>
+  <title>Bradley-Terry models in brms</title>
+  <dc:creator>Matthew Hoctor</dc:creator>
+  <link>https://matthew-hoctor.github.io/blog/posts/UFC/index.html</link>
+  <description><![CDATA[ <section id="the-ufclefties-question" class="level2"><h2 class="anchored" data-anchor-id="the-ufclefties-question">The UFClefties question</h2>
+<p>I recently came across an interesting question while working through the problem sets in the <a href="https://github.com/rmcelreath/stat_rethinking_2025">Statistical Rethinking course</a>. This problem asks us to estimate the advantage of left-handedness within the UFC based on hand coded UFC data from <a href="https://www.sciencedirect.com/science/article/abs/pii/S0003347213003485">this paper</a>. The question is motivated by the fact that lefties are over-represented in the UFC (~20% of fighters), as well as other sports like tennis, fencing, etc. The <a href="https://github.com/matthew-hoctor/blog/blob/main/posts/UFC/UFClefties.csv">dataset</a> includes info on each UFC fight in the years 2010-2012, including the winner and loser, and the handedness of each fighter</p>
+<p>The solution set (and the paper) treat the abilities of each fighter as purely unobserved; i.e.&nbsp;the following causal structure is assumed for the data:</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="https://matthew-hoctor.github.io/blog/posts/UFC/index_files/figure-html/DAG-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>However we are given some limited information on fighter abilities, since some of the fighters fight in multiple matches. We can include this information with a Bradley-Terrey model:</p>
+</section><section id="bradley-terry-models" class="level2"><h2 class="anchored" data-anchor-id="bradley-terry-models">Bradley-Terry models</h2>
+<p>Wikipedia defines a <a href="https://en.wikipedia.org/wiki/Bradley%E2%80%93Terry_model">Bradley-Terry model</a> as:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5CPr(i%20%3E%20j)%20=%20%5Cfrac%7Ba_i%7D%7Ba_i%20+%20a_j%7D"></p>
+<p>Where</p>
+<ul>
+<li>
+<img src="https://latex.codecogs.com/png.latex?%5CPr(i%20%3E%20j)"> is the probability of a pairwise comparison of element i vs element j is true; e.g.&nbsp;in an MMA match between fighter i and fighter j, fighter i wins</li>
+<li>
+<img src="https://latex.codecogs.com/png.latex?a_i%20=%20e%5E%7B%5Cbeta_i%7D">, where <img src="https://latex.codecogs.com/png.latex?%5Cbeta_i"> is a real value assigned to element i; e.g.&nbsp;the skill of fighter i</li>
+</ul>
+<p>When transformed to the log-odds scale we get:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Coperatorname%7Blogit%7D(%5CPr(i%20%3E%20j))%20=%20%5Cbeta_i%20-%20%5Cbeta_j"></p>
+<p>It seems that this class of models describes the UFClefties question. Andy Milne describes how to parameterize this class of models for <code>brms</code> in this <a href="https://discourse.mc-stan.org/t/bradley-terry-model-in-brms-or-rstanarm-lme4-notation/28932/3">stan forum post</a>; essentially we need a <img src="https://latex.codecogs.com/png.latex?%5Cbeta"> variable for each fighter with a value of 1 if the fighter won the match, a value of-1 if the fighter lost, and a value of 0 otherwise. Adding handedness gives the following model</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Coperatorname%7Blogit%7D(%5CPr(i%20%3E%20j))%20=%20L%20+%20%5Cbeta_i%20-%20%5Cbeta_j"></p>
+<p>Where <img src="https://latex.codecogs.com/png.latex?L"> denotes the ‘lefty advantage’ and encodes the diasteriomeric relation of the match; <img src="https://latex.codecogs.com/png.latex?L"> takes the following values:</p>
+<ul>
+<li>0 when a righty fights a righty or a lefty fights a lefty</li>
+<li>1 when a lefty wins over a righty</li>
+<li>-1 when a righty wins over a lefty</li>
+</ul>
+<p>Are we actually going to get much info on fighter ability from going about it this way? Let’s poke a bit at the data to find out.</p>
+</section><section id="exploratory" class="level2"><h2 class="anchored" data-anchor-id="exploratory">Exploratory</h2>
+<p>Let’s graph the fights in the dataset with each fighter as a vertex, and each fight as an edge:</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="https://matthew-hoctor.github.io/blog/posts/UFC/index_files/figure-html/fight_graph-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>That might be a bit difficult to see, depending on your screen width; here’s a tabulation of cluster size (the number of fighters connected to one another by any number of fights):</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(fighter)`</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 12 × 3
+   cluster_size fighters cumulative
+          &lt;int&gt;    &lt;int&gt;      &lt;int&gt;
+ 1            2       44         44
+ 2            3       45         89
+ 3            4       16        105
+ 4            5        5        110
+ 5            6       24        134
+ 6           10       10        144
+ 7           11       11        155
+ 8           15       15        170
+ 9           17       17        187
+10           18       18        205
+11           19       19        224
+12           20       20        244</code></pre>
+</div>
+</div>
+<p>A good chunk of the fighters are unfortunately in very small clusters, and about a fifth are in clusters of size 2; it does look like there’s some good info in the graph structure though. Let’s graph a few of the largest clusters:</p>
+<div class="cell quarto-layout-panel">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure"><p><img src="https://matthew-hoctor.github.io/blog/posts/UFC/index_files/figure-html/fight_graphs-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Cluster Size 17</figcaption></figure>
+</div>
+</div>
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure"><p><img src="https://matthew-hoctor.github.io/blog/posts/UFC/index_files/figure-html/fight_graphs-2.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Cluster Size 18</figcaption></figure>
+</div>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure"><p><img src="https://matthew-hoctor.github.io/blog/posts/UFC/index_files/figure-html/fight_graphs-3.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Cluster Size 19</figcaption></figure>
+</div>
+</div>
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure"><p><img src="https://matthew-hoctor.github.io/blog/posts/UFC/index_files/figure-html/fight_graphs-4.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Cluster Size 20</figcaption></figure>
+</div>
+</div>
+</div>
+</div>
+<p>There’s plenty more exploration to do, and this is left as an exercise for the reader.</p>
+</section><section id="the-model" class="level2"><h2 class="anchored" data-anchor-id="the-model">The Model</h2>
+<section id="dataset" class="level3"><h3 class="anchored" data-anchor-id="dataset">Dataset</h3>
+<p>The dataset includes 244 fights, and a Bradley-Terry model requires a variable for each fight; so here’s the code I used to MUNGE the data:</p>
+<div class="cell">
+<details open=""><summary>Code</summary><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># MUNGE the data:</span></span>
+<span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">d</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">UFClefties</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span>  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span></span>
+<span>    Y <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1L</span>,                             <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># response var; brms likes it this way</span></span>
+<span>    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># diasteriomeric description of the fight; lefty win/lose/0:</span></span>
+<span>    L <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fighter1.lefty</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fighter2.lefty</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fighter1.win</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>,</span>
+<span>    fight <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">row_number</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>,               <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># helps pivot_wider keep track of things</span></span>
+<span>    winner <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">if_else</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fighter1.win</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fighter1</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fighter2</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>,</span>
+<span>    loser <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">if_else</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fighter1.win</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fighter1</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fighter2</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span>  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">Y</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">L</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fight</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">winner</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">loser</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># gets rid of unnecessary vars</span></span>
+<span></span>
+<span><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Prepare the Bradley-Terry vars (MUNGE again):</span></span>
+<span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">d</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span></span>
+<span>  <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">d</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span>    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>fighter <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">winner</span>,</span>
+<span>           outcome <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1L</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span>    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">Y</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">L</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fight</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fighter</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">outcome</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>,</span>
+<span>  <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">d</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span>    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>fighter <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">loser</span>,</span>
+<span>           outcome <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1L</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span>    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">Y</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">L</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fight</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fighter</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">outcome</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span>  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pivot_wider</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span></span>
+<span>    id_cols <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">Y</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">L</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fight</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>,</span>
+<span>    names_from <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fighter</span>,</span>
+<span>    names_prefix <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"f"</span>,</span>
+<span>    names_sort <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>,</span>
+<span>    values_from <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">outcome</span>,</span>
+<span>    values_fill <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0L</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span>  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">fight</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span></code></pre></div>
+</details>
+</div>
+<p>Here’s a peek of the the fully-MUNGE-ed dataset:</p>
+<div class="cell">
+<details open=""><summary>Code</summary><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">d</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">[</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">56</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">65</span>,<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">]</span>, n <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span></code></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 10
+       Y     L    f1    f2    f3    f4    f5    f6    f7    f8
+   &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;
+ 1     1     0     0     0     0     0     1     0     0     0
+ 2     1     0     0     0     0     0     0     0     0     0
+ 3     1     0     0     0     0     0     0     0     0     0
+ 4     1    -1     0     0     0     0     0     0     0     0
+ 5     1     1     0     0     0     0     0     0     0     0
+ 6     1     0     0     0     0     0     0     0     0     0
+ 7     1     0     0     0     0     0     0     0     0     0
+ 8     1     0     0     0     0     0     0     0     0     0
+ 9     1     0     1     0     0     0     0     0     0     0
+10     1    -1     0     0     0     0     0     0     0     0</code></pre>
+</div>
+</div>
+</section><section id="brms-model" class="level3"><h3 class="anchored" data-anchor-id="brms-model">brms Model</h3>
+<p>Fortunately brms follows the standard <a href="https://academic.oup.com/jrsssc/article/22/3/392/6882728?login=false">Wilkinson formula</a> syntax (e.g.&nbsp;that of the R stats package, nlme, the Bayesian python package bambi, etc), so instead of writing out all of the variables in the formula we can specify the formula with <code>bf(Y ~ 0 + ., family = bernoulli)</code>, where <code>.</code> denotes the sum of all variables (other than the response variable, <code>Y</code>); here <code>0</code> tells to brms not to automatically add an intercept to the model.</p>
+<div class="cell">
+<details open=""><summary>Code</summary><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">BT_model</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">brm</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span></span>
+<span>  formula <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">bf</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">Y</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">.</span>, family <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">bernoulli</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>,</span>
+<span>  prior <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">prior</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">normal</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>, class <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">b</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>,</span>
+<span>  data <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">d</span>, </span>
+<span>  chains <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">chains</span>,</span>
+<span>  seed <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">seed</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span></code></pre></div>
+</details>
+</div>
+<p>The seed used is <code>{r} seed</code>. Similarly, here’s the model from the paper and the solution set:</p>
+<div class="cell">
+<details open=""><summary>Code</summary><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">model</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">brm</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span></span>
+<span>  formula <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">bf</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">Y</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">L</span>, family <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">bernoulli</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>,</span>
+<span>  prior <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">prior</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">normal</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>, class <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">b</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>,</span>
+<span>  data <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">d</span>, </span>
+<span>  chains <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">chains</span>,</span>
+<span>  seed <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">seed</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span></code></pre></div>
+</details>
+</div>
+<p>The seed used for this one is <code>{r} seed</code>. Trace and trank plots look fine for both models; they will not be reproduced here.</p>
+</section></section><section id="results" class="level2"><h2 class="anchored" data-anchor-id="results">Results</h2>
+<p>Here’s a tabulation of the the posterior probabilities with 89% HDI:</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Dropping 'draws_df' class as required metadata was removed.
+Warning: Dropping 'draws_df' class as required metadata was removed.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 7
+  Model         value .lower .upper .width .point .interval
+  &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    
+1 Base_Model -0.00195 -0.392  0.362   0.89 mean   hdi      
+2 BT_Model    0.0477  -0.466  0.546   0.89 mean   hdi      </code></pre>
+</div>
+</div>
+<p>And the posterior predictive plot:</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 10 rows containing non-finite outside the scale range
+(`stat_density()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="https://matthew-hoctor.github.io/blog/posts/UFC/index_files/figure-html/posterior_pred_plot-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section><section id="conclusion" class="level2"><h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>So in this case adding information on fighter ability didn’t affect the posterior distribution much, and probably didn’t contain much information given the small size of the clusters, and low average number of fights for each fighter; but it was an interesting exercise.</p>
+
+
+<!-- -->
+
+</section> ]]></description>
+  <category>draft</category>
+  <guid>https://matthew-hoctor.github.io/blog/posts/UFC/index.html</guid>
+  <pubDate>Sun, 02 Feb 2025 08:00:00 GMT</pubDate>
+</item>
+<item>
   <title>Test Post</title>
   <dc:creator>Matthew Hoctor</dc:creator>
   <link>https://matthew-hoctor.github.io/blog/posts/test post/index.html</link>

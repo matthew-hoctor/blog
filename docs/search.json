@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Index",
     "section": "",
-    "text": "Test Post\n\n\n\n\n\n\n\ntest\n\n\n\n\n\n\n\n\n\n\n\nFeb 2, 2025\n\n\nMatthew Hoctor\n\n\n\n\n\n\nNo matching items"
+    "text": "Bradley-Terry models in brms\n\n\n\n\n\n\n\ndraft\n\n\n\n\n\n\n\n\n\n\n\nFeb 2, 2025\n\n\nMatthew Hoctor\n\n\n\n\n\n\n  \n\n\n\n\nTest Post\n\n\n\n\n\n\n\ntest\n\n\n\n\n\n\n\n\n\n\n\nFeb 2, 2025\n\n\nMatthew Hoctor\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
@@ -40,5 +40,54 @@
     "title": "Test Post",
     "section": "",
     "text": "This is the first post in a Quarto blog. Welcome!"
+  },
+  {
+    "objectID": "posts/UFC/index.html",
+    "href": "posts/UFC/index.html",
+    "title": "Bradley-Terry models in brms",
+    "section": "",
+    "text": "I recently came across an interesting question while working through the problem sets in the Statistical Rethinking course. This problem asks us to estimate the advantage of left-handedness within the UFC based on hand coded UFC data from this paper. The question is motivated by the fact that lefties are over-represented in the UFC (~20% of fighters), as well as other sports like tennis, fencing, etc. The dataset includes info on each UFC fight in the years 2010-2012, including the winner and loser, and the handedness of each fighter\nThe solution set (and the paper) treat the abilities of each fighter as purely unobserved; i.e. the following causal structure is assumed for the data:\n\n\n\n\n\nHowever we are given some limited information on fighter abilities, since some of the fighters fight in multiple matches. We can include this information with a Bradley-Terrey model:"
+  },
+  {
+    "objectID": "posts/UFC/index.html#the-ufclefties-question",
+    "href": "posts/UFC/index.html#the-ufclefties-question",
+    "title": "Bradley-Terry models in brms",
+    "section": "",
+    "text": "I recently came across an interesting question while working through the problem sets in the Statistical Rethinking course. This problem asks us to estimate the advantage of left-handedness within the UFC based on hand coded UFC data from this paper. The question is motivated by the fact that lefties are over-represented in the UFC (~20% of fighters), as well as other sports like tennis, fencing, etc. The dataset includes info on each UFC fight in the years 2010-2012, including the winner and loser, and the handedness of each fighter\nThe solution set (and the paper) treat the abilities of each fighter as purely unobserved; i.e. the following causal structure is assumed for the data:\n\n\n\n\n\nHowever we are given some limited information on fighter abilities, since some of the fighters fight in multiple matches. We can include this information with a Bradley-Terrey model:"
+  },
+  {
+    "objectID": "posts/UFC/index.html#bradley-terry-models",
+    "href": "posts/UFC/index.html#bradley-terry-models",
+    "title": "Bradley-Terry models in brms",
+    "section": "Bradley-Terry models",
+    "text": "Bradley-Terry models\nWikipedia defines a Bradley-Terry model as:\n\\[\\Pr(i &gt; j) = \\frac{a_i}{a_i + a_j}\\]\nWhere\n\n\n\\(\\Pr(i &gt; j)\\) is the probability of a pairwise comparison of element i vs element j is true; e.g. in an MMA match between fighter i and fighter j, fighter i wins\n\n\\(a_i = e^{\\beta_i}\\), where \\(\\beta_i\\) is a real value assigned to element i; e.g. the skill of fighter i\n\nWhen transformed to the log-odds scale we get:\n\\[\\operatorname{logit}(\\Pr(i &gt; j)) = \\beta_i - \\beta_j\\]\nIt seems that this class of models describes the UFClefties question. Andy Milne describes how to parameterize this class of models for brms in this stan forum post; essentially we need a \\(\\beta\\) variable for each fighter with a value of 1 if the fighter won the match, a value of-1 if the fighter lost, and a value of 0 otherwise. Adding handedness gives the following model\n\\[\\operatorname{logit}(\\Pr(i &gt; j)) = L + \\beta_i - \\beta_j\\]\nWhere \\(L\\) denotes the ‘lefty advantage’ and encodes the diasteriomeric relation of the match; \\(L\\) takes the following values:\n\n0 when a righty fights a righty or a lefty fights a lefty\n1 when a lefty wins over a righty\n-1 when a righty wins over a lefty\n\nAre we actually going to get much info on fighter ability from going about it this way? Let’s poke a bit at the data to find out."
+  },
+  {
+    "objectID": "posts/UFC/index.html#exploratory",
+    "href": "posts/UFC/index.html#exploratory",
+    "title": "Bradley-Terry models in brms",
+    "section": "Exploratory",
+    "text": "Exploratory\nLet’s graph the fights in the dataset with each fighter as a vertex, and each fight as an edge:\n\n\n\n\n\nThat might be a bit difficult to see, depending on your screen width; here’s a tabulation of cluster size (the number of fighters connected to one another by any number of fights):\n\n\nJoining with `by = join_by(fighter)`\n\n\n# A tibble: 12 × 3\n   cluster_size fighters cumulative\n          &lt;int&gt;    &lt;int&gt;      &lt;int&gt;\n 1            2       44         44\n 2            3       45         89\n 3            4       16        105\n 4            5        5        110\n 5            6       24        134\n 6           10       10        144\n 7           11       11        155\n 8           15       15        170\n 9           17       17        187\n10           18       18        205\n11           19       19        224\n12           20       20        244\n\n\nA good chunk of the fighters are unfortunately in very small clusters, and about a fifth are in clusters of size 2; it does look like there’s some good info in the graph structure though. Let’s graph a few of the largest clusters:\n\n\n\n\n\nCluster Size 17\n\n\n\n\n\nCluster Size 18\n\n\n\n\n\n\n\nCluster Size 19\n\n\n\n\n\nCluster Size 20\n\n\n\n\nThere’s plenty more exploration to do, and this is left as an exercise for the reader."
+  },
+  {
+    "objectID": "posts/UFC/index.html#the-model",
+    "href": "posts/UFC/index.html#the-model",
+    "title": "Bradley-Terry models in brms",
+    "section": "The Model",
+    "text": "The Model\nDataset\nThe dataset includes 244 fights, and a Bradley-Terry model requires a variable for each fight; so here’s the code I used to MUNGE the data:\n\nCode# MUNGE the data:\nd &lt;- UFClefties |&gt;\n  mutate(\n    Y = 1L,                             # response var; brms likes it this way\n    # diasteriomeric description of the fight; lefty win/lose/0:\n    L = as.integer((fighter1.lefty - fighter2.lefty) * (2*fighter1.win - 1)),\n    fight = row_number(),               # helps pivot_wider keep track of things\n    winner = if_else(fighter1.win ==1, fighter1, fighter2),\n    loser = if_else(fighter1.win ==0, fighter1, fighter2)) |&gt;\n  select(Y, L, fight, winner, loser)    # gets rid of unnecessary vars\n\n# Prepare the Bradley-Terry vars (MUNGE again):\nd &lt;- rbind(\n  d |&gt;\n    mutate(fighter = winner,\n           outcome = 1L) |&gt;\n    select(Y, L, fight, fighter, outcome),\n  d |&gt;\n    mutate(fighter = loser,\n           outcome = -1L) |&gt;\n    select(Y, L, fight, fighter, outcome)) |&gt; \n  pivot_wider(\n    id_cols = c(Y, L, fight),\n    names_from = fighter,\n    names_prefix = \"f\",\n    names_sort = TRUE,\n    values_from = outcome,\n    values_fill = 0L) |&gt;\n  select(-fight)\n\n\nHere’s a peek of the the fully-MUNGE-ed dataset:\n\nCodehead(d[56:65,1:10], n = 10)\n\n# A tibble: 10 × 10\n       Y     L    f1    f2    f3    f4    f5    f6    f7    f8\n   &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;\n 1     1     0     0     0     0     0     1     0     0     0\n 2     1     0     0     0     0     0     0     0     0     0\n 3     1     0     0     0     0     0     0     0     0     0\n 4     1    -1     0     0     0     0     0     0     0     0\n 5     1     1     0     0     0     0     0     0     0     0\n 6     1     0     0     0     0     0     0     0     0     0\n 7     1     0     0     0     0     0     0     0     0     0\n 8     1     0     0     0     0     0     0     0     0     0\n 9     1     0     1     0     0     0     0     0     0     0\n10     1    -1     0     0     0     0     0     0     0     0\n\n\nbrms Model\nFortunately brms follows the standard Wilkinson formula syntax (e.g. that of the R stats package, nlme, the Bayesian python package bambi, etc), so instead of writing out all of the variables in the formula we can specify the formula with bf(Y ~ 0 + ., family = bernoulli), where . denotes the sum of all variables (other than the response variable, Y); here 0 tells to brms not to automatically add an intercept to the model.\n\nCodeBT_model &lt;- brm(\n  formula = bf(Y ~ 0 + ., family = bernoulli),\n  prior = prior(normal(0, 1), class = b),\n  data = d, \n  chains = chains,\n  seed = (seed &lt;- as.integer(Sys.time())))\n\n\nThe seed used is {r} seed. Similarly, here’s the model from the paper and the solution set:\n\nCodemodel &lt;- brm(\n  formula = bf(Y ~ 0 + L, family = bernoulli),\n  prior = prior(normal(0, 1), class = b),\n  data = d, \n  chains = chains,\n  seed = (seed &lt;- as.integer(Sys.time())))\n\n\nThe seed used for this one is {r} seed. Trace and trank plots look fine for both models; they will not be reproduced here."
+  },
+  {
+    "objectID": "posts/UFC/index.html#results",
+    "href": "posts/UFC/index.html#results",
+    "title": "Bradley-Terry models in brms",
+    "section": "Results",
+    "text": "Results\nHere’s a tabulation of the the posterior probabilities with 89% HDI:\n\n\nWarning: Dropping 'draws_df' class as required metadata was removed.\nWarning: Dropping 'draws_df' class as required metadata was removed.\n\n\n# A tibble: 2 × 7\n  Model         value .lower .upper .width .point .interval\n  &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1 Base_Model -0.00195 -0.392  0.362   0.89 mean   hdi      \n2 BT_Model    0.0477  -0.466  0.546   0.89 mean   hdi      \n\n\nAnd the posterior predictive plot:\n\n\nWarning: Removed 10 rows containing non-finite outside the scale range\n(`stat_density()`)."
+  },
+  {
+    "objectID": "posts/UFC/index.html#conclusion",
+    "href": "posts/UFC/index.html#conclusion",
+    "title": "Bradley-Terry models in brms",
+    "section": "Conclusion",
+    "text": "Conclusion\nSo in this case adding information on fighter ability didn’t affect the posterior distribution much, and probably didn’t contain much information given the small size of the clusters, and low average number of fights for each fighter; but it was an interesting exercise."
   }
 ]

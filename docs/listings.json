@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/UFC/index.html",
       "/posts/test post/index.html"
     ]
   }

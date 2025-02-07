@@ -1,0 +1,440 @@
+---
+title: "Bradley-Terry models in brms"
+author: "Matthew Hoctor"
+date: "2025-02-02"
+date-modified: last-modified
+categories: 
+  - draft
+
+draft: false
+
+toc: true
+toc-depth: 4
+toc-expand: true
+toc-location: left
+toc-title: Contents
+  
+code-fold: show
+code-overflow: wrap
+code-tools: true
+code-link: true
+
+execute: 
+  echo: false
+
+editor: source
+---
+
+```{r setup}
+#| include: false
+
+# Load libraries
+
+##    General:
+library(tidyverse)
+# library(data.table)
+# library(devtools)
+# library(remotes)
+# library(lattice)                # alternate plotting system
+# library(extraDistr)             # extra distributions
+
+##    Rethinking course:
+# library(rethinking)             # generally don’t want to load rethinking and brms loaded simultaneously
+
+## Directed Graphs
+library(ggdag)
+# library(dagitty)
+library(igraph)
+# library(rgl)                    # 3d graph visualization
+
+##    Other Bayesian analysis packages:
+# library(cmdstanr)               # loaded from rethinking package
+# library(loo)                    # LOO-CV
+# library(projpred)
+# library(rstantools)
+
+##    Kurtz packages
+# library(ape)
+# library(bayesplot)
+library(brms)                   # BRMS
+# library(broom)
+# library(flextable)
+library(GGally)                 # ggpairs
+# library(ggdark)
+# library(ggmcmc)
+# library(ggrepel)
+# library(ggthemes)
+# library(ggtree)
+# library(ghibli)
+# library(gtools)                 #ddirichlet()
+# library(invgamma)
+# library(patchwork)
+# library(posterior)
+# library(psych)
+# library(rcartocolor)
+# library(Rcpp)
+# library(rstan)
+# library(santoku)
+# library(StanHeaders)
+# library(statebins)
+library(tidybayes)              # mean_hdi()                
+# library(viridis)
+# library(viridisLite)
+# library(wesanderson)
+
+# Set options for cores, chains & threading:
+
+cores = parallel::detectCores()
+chains = ifelse(cores >=4, 4L, cores)
+options(
+  mc.cores = parallel::detectCores(),
+  # Within-chain parallelization; see vignette("brms_threading")
+  brms.threads = threading(
+    threads = cores %/% chains,       # == floor(cores/chains)
+    grainsize = NULL,                 # default
+    static = TRUE)                    # required for reproducibility; disables adaptive scheduling
+)
+# cleanup
+rm(cores)
+```
+
+```{r UFClefties}
+# load data from Statistical Rethinking course package:
+data("UFClefties", package = "rethinking")
+# write .csv file:
+write.csv(UFClefties, file = "UFClefties.csv")
+```
+
+```{r fighters}
+fighters <- rbind(
+  UFClefties |> 
+    select(fight, fighter1, fighter1.lefty, fighter1.win) |> 
+    rename(fighter = fighter1,
+           lefty = fighter1.lefty,
+           win = fighter1.win),
+  UFClefties |> 
+    select(fight, fighter2, fighter2.lefty, fighter1.win) |> 
+    rename(fighter = fighter2,
+           lefty = fighter2.lefty,
+           win = fighter1.win) |>
+    mutate(win = if_else(win == 1, 0, 1))) |>
+  group_by(fighter) |>
+  mutate(
+    Fights = length(fight),
+    Wins = sum(win)
+  ) |>
+  select(-fight, -win) |>
+  unique() |>
+  ungroup() |>
+  arrange(fighter)
+```
+
+## The UFClefties question
+
+I recently came across an interesting question while working through the problem sets in the [Statistical Rethinking course](https://github.com/rmcelreath/stat_rethinking_2025).  This problem asks us to estimate the advantage of left-handedness within the UFC based on hand coded UFC data from [this paper](https://www.sciencedirect.com/science/article/abs/pii/S0003347213003485).  The question is motivated by the fact that lefties are over-represented in the UFC (~20% of fighters), as well as other sports like tennis, fencing, etc.  The [dataset](https://github.com/matthew-hoctor/blog/blob/main/posts/UFC/UFClefties.csv) includes info on each UFC fight in the years 2010-2012, including the winner and loser, and the handedness of each fighter
+
+The solution set (and the paper) treat the abilities of each fighter as purely unobserved; i.e. the following causal structure is assumed for the data:
+
+```{r DAG}
+dagify(
+  W ~ A + L + Q,
+  Q ~ A + L,
+  exposure = "L",
+  outcome = "W",
+  latent = "A",
+  labels = c(
+    "W" = "Win",
+    "A" = "Fighter\nAbility",
+    "L" = "Left-handed-ness",
+    "Q" = "UFC\nQualification"),
+  coords = list(
+    x = c(L = 0, W = 1, A = 1,  Q = 0),
+    y = c(L = 0, W = 0, A = 1,  Q = 1))) |>
+  ggdag_status(
+    text = TRUE,
+    use_labels = "label") + 
+  theme_dag_gray_grid(
+    panel.grid  = element_blank(),
+    panel.background = element_blank()) +
+  labs(title='', col='Status')
+```
+
+However we are given some limited information on fighter abilities, since some of the fighters fight in multiple matches.  We can include this information with a Bradley-Terrey model:
+
+## Bradley-Terry models
+
+Wikipedia defines a [Bradley-Terry model](https://en.wikipedia.org/wiki/Bradley%E2%80%93Terry_model) as:
+
+$$\Pr(i > j) = \frac{a_i}{a_i + a_j}$$
+
+Where
+
+ - $\Pr(i > j)$ is the probability of a pairwise comparison of element i vs element j is true; e.g. in an MMA match between fighter i and fighter j, fighter i wins
+ - $a_i = e^{\beta_i}$, where $\beta_i$ is a real value assigned to element i; e.g. the skill of fighter i
+ 
+When transformed to the log-odds scale we get:
+
+$$\operatorname{logit}(\Pr(i > j)) = \beta_i - \beta_j$$
+
+It seems that this class of models describes the UFClefties question.  Andy Milne describes how to parameterize this class of models for `brms` in this [stan forum post](https://discourse.mc-stan.org/t/bradley-terry-model-in-brms-or-rstanarm-lme4-notation/28932/3); essentially we need a $\beta$ variable for each fighter with a value of 1 if the fighter won the match, a value of-1 if the fighter lost, and a value of 0 otherwise.  Adding handedness gives the following model
+
+$$\operatorname{logit}(\Pr(i > j)) = L + \beta_i - \beta_j$$
+
+Where $L$ denotes the 'lefty advantage' and encodes the diasteriomeric relation of the match; $L$ takes the following values:
+
+ - 0 when a righty fights a righty or a lefty fights a lefty
+ - 1 when a lefty wins over a righty
+ - -1 when a righty wins over a lefty
+ 
+Are we actually going to get much info on fighter ability from going about it this way?  Let's poke a bit at the data to find out.
+
+## Exploratory
+
+Let's graph the fights in the dataset with each fighter as a vertex, and each fight as an edge:
+
+```{r fight_graph}
+g <- UFClefties |>
+  mutate(
+    winner = if_else(fighter1.win == 1, fighter1, fighter2),
+    loser = if_else(fighter1.win == 0, fighter1, fighter2)) |>
+  select(winner, loser) |>
+  graph_from_data_frame(
+    directed = TRUE,
+    vertices = fighters)
+plot(g, 
+  canvas.width = 1000,
+  canvas.height = 1000,
+  layout = layout_with_kk(
+    g, 
+    dim = 2,
+    maxiter = 500*vcount(g)))
+```
+
+That might be a bit difficult to see, depending on your screen width; here's a tabulation of cluster size (the number of fighters connected to one another by any number of fights):
+
+```{r cluster_table}
+clusters.g <- cluster_edge_betweenness(g, directed = FALSE)
+membership.g <- data.frame(
+  fighter = 1:244,
+  membership = membership(clusters.g))
+
+(fighters <- left_join(
+  x = fighters,
+  y = membership.g,
+  ) |>
+  group_by(membership) |>
+  mutate(cluster_size = n()) |>
+  ungroup()) |>
+  group_by(cluster_size) |>
+  summarize(fighters = n()) |>
+  ungroup() |>
+  select(cluster_size, fighters) |>
+  mutate(cumulative = cumsum(fighters))
+```
+
+A good chunk of the fighters are unfortunately in very small clusters, and about a fifth are in clusters of size 2; it does look like there's some good info in the graph structure though.  Let's graph a few of the largest clusters:
+
+```{r fight_graphs}
+#| layout-ncol: 2
+#| fig-cap:
+#|   - "Cluster Size 17"
+#|   - "Cluster Size 18"
+#|   - "Cluster Size 19"
+#|   - "Cluster Size 20"
+
+g17 <- UFClefties |>
+  mutate(
+    winner = if_else(fighter1.win == 1, fighter1, fighter2),
+    loser = if_else(fighter1.win == 0, fighter1, fighter2)) |>
+  select(winner, loser) |>
+  graph_from_data_frame(
+    directed = TRUE,
+    vertices = fighters) |>
+  delete_vertices(fighters[fighters$cluster_size != 17,]$fighter)
+plot(g17, 
+  canvas.width = 1000,
+  canvas.height = 1000,
+  layout = layout_with_kk(
+    g17, 
+    dim = 2,
+    maxiter = 500*vcount(g)))
+
+g18 <- UFClefties |>
+  mutate(
+    winner = if_else(fighter1.win == 1, fighter1, fighter2),
+    loser = if_else(fighter1.win == 0, fighter1, fighter2)) |>
+  select(winner, loser) |>
+  graph_from_data_frame(
+    directed = TRUE,
+    vertices = fighters) |>
+  delete_vertices(fighters[fighters$cluster_size != 18,]$fighter)
+plot(g18, 
+  canvas.width = 1000,
+  canvas.height = 1000,
+  layout = layout_with_kk(
+    g18, 
+    dim = 2,
+    maxiter = 500*vcount(g)))
+
+g19 <- UFClefties |>
+  mutate(
+    winner = if_else(fighter1.win == 1, fighter1, fighter2),
+    loser = if_else(fighter1.win == 0, fighter1, fighter2)) |>
+  select(winner, loser) |>
+  graph_from_data_frame(
+    directed = TRUE,
+    vertices = fighters) |>
+  delete_vertices(fighters[fighters$cluster_size != 19,]$fighter)
+plot(g19, 
+  canvas.width = 1000,
+  canvas.height = 1000,
+  layout = layout_with_kk(
+    g19, 
+    dim = 2,
+    maxiter = 500*vcount(g)))
+
+g20 <- UFClefties |>
+  mutate(
+    winner = if_else(fighter1.win == 1, fighter1, fighter2),
+    loser = if_else(fighter1.win == 0, fighter1, fighter2)) |>
+  select(winner, loser) |>
+  graph_from_data_frame(
+    directed = TRUE,
+    vertices = fighters) |>
+  delete_vertices(fighters[fighters$cluster_size != 20,]$fighter)
+plot(g20, 
+  canvas.width = 1000,
+  canvas.height = 1000,
+  layout = layout_with_kk(
+    g20, 
+    dim = 2,
+    maxiter = 500*vcount(g)))
+```
+
+There's plenty more exploration to do, and this is left as an exercise for the reader.
+
+## The Model
+
+### Dataset
+
+The dataset includes 244 fights, and a Bradley-Terry model requires a variable for each fight; so here's the code I used to MUNGE the data:
+
+```{r data}
+#| echo: true
+
+# MUNGE the data:
+d <- UFClefties |>
+  mutate(
+    Y = 1L,                             # response var; brms likes it this way
+    # diasteriomeric description of the fight; lefty win/lose/0:
+    L = as.integer((fighter1.lefty - fighter2.lefty) * (2*fighter1.win - 1)),
+    fight = row_number(),               # helps pivot_wider keep track of things
+    winner = if_else(fighter1.win ==1, fighter1, fighter2),
+    loser = if_else(fighter1.win ==0, fighter1, fighter2)) |>
+  select(Y, L, fight, winner, loser)    # gets rid of unnecessary vars
+
+# Prepare the Bradley-Terry vars (MUNGE again):
+d <- rbind(
+  d |>
+    mutate(fighter = winner,
+           outcome = 1L) |>
+    select(Y, L, fight, fighter, outcome),
+  d |>
+    mutate(fighter = loser,
+           outcome = -1L) |>
+    select(Y, L, fight, fighter, outcome)) |> 
+  pivot_wider(
+    id_cols = c(Y, L, fight),
+    names_from = fighter,
+    names_prefix = "f",
+    names_sort = TRUE,
+    values_from = outcome,
+    values_fill = 0L) |>
+  select(-fight)
+```
+
+Here's a peek of the the fully-MUNGE-ed dataset:
+
+```{r head_data}
+head(d[56:65,1:10], n = 10)
+```
+
+### brms Model
+
+Fortunately brms follows the standard [Wilkinson formula](https://academic.oup.com/jrsssc/article/22/3/392/6882728?login=false) syntax (e.g. that of the R stats package, nlme, the Bayesian python package bambi, etc), so instead of writing out all of the variables in the formula we can specify the formula with `bf(Y ~ 0 + ., family = bernoulli)`, where `.` denotes the sum of all variables (other than the response variable, `Y`); here `0` tells to brms not to automatically add an intercept to the model.
+
+```{r BT_model}
+#| echo: true
+#| output: false
+
+BT_model <- brm(
+  formula = bf(Y ~ 0 + ., family = bernoulli),
+  prior = prior(normal(0, 1), class = b),
+  data = d, 
+  chains = chains,
+  seed = (seed <- as.integer(Sys.time())))
+```
+
+The seed used is `{r}seed`.  Similarly, here's the model from the paper and the solution set:
+
+```{r model}
+#| echo: true
+#| output: false
+
+model <- brm(
+  formula = bf(Y ~ 0 + L, family = bernoulli),
+  prior = prior(normal(0, 1), class = b),
+  data = d, 
+  chains = chains,
+  seed = (seed <- as.integer(Sys.time())))
+```
+
+The seed used for this one is `{r}seed`.  Trace and trank plots look fine for both models; they will not be reproduced here.
+
+## Results
+
+Here's a tabulation of the the posterior probabilities with 89% HDI:
+
+
+```{r HDPI_table}
+#| warning: false
+
+(draws <- cbind(
+  model |> 
+    as_draws_df() |>
+    select(b_L) |>
+    rename(Base_Model = b_L),
+  BT_model |> 
+    as_draws_df() |>
+    select(b_L) |>
+    rename(BT_Model = b_L)) |>
+  pivot_longer(cols = everything()) |>  # pivots all columns
+  rename(Model = name)) |>
+  group_by(Model) |>
+  mean_hdi(value, .width = .89)
+```
+
+And the posterior predictive plot:
+
+```{r posterior_pred_plot}
+#| warning: false
+
+draws |>
+  ggplot(aes(x = value, fill = Model)) +
+  geom_density(alpha = 0.5) +
+  # geom_function(fun = dnorm) +
+  xlab("Lefty advantage") +
+  ylab("Probability Density") +
+  theme(                                            # add x & y lines
+    panel.grid  = element_blank(),
+    panel.background = element_blank(),             # remove gray background
+    axis.line.x = element_line(colour = 'black', linewidth = 0.5, linetype='solid'),
+    axis.line.y = element_line(colour = 'black', linewidth = 0.5, linetype='solid'),
+    legend.title = element_blank()) +
+  scale_x_continuous(limits = c(-1, 1), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 1.7), expand = c(0, 0))
+```
+
+## Conclusion
+
+So in this case adding information on fighter ability didn't affect the posterior distribution much, and probably didn't contain much information given the small size of the clusters, and low average number of fights for each fighter; but it was an interesting exercise.
