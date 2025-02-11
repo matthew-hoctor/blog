@@ -1,5 +1,5 @@
 ---
-title: "Bradley-Terry models in brms"
+title: "Bradley-Terry models in brms - information theoretic analysis"
 author: "Matthew Hoctor"
 date: "2025-02-02"
 date-modified: last-modified
@@ -7,7 +7,8 @@ license: "CC BY-SA 4.0"
 categories: 
   - brms
   - Bayesian statistics
-draft: false
+  - information theory
+draft: true
 
 toc: true
 toc-depth: 4
@@ -20,9 +21,10 @@ code-overflow: wrap
 code-tools: true
 code-link: true
 
-freeze: false
 execute: 
   echo: false
+
+freeze: true
 
 editor: source
 ---
@@ -39,7 +41,7 @@ library(tidyverse)
 # library(remotes)
 # library(lattice)                # alternate plotting system
 # library(extraDistr)             # extra distributions
-# library(philentropy)            # similarity & distance measures
+library(philentropy)                # similarity & distance measures
 
 ##    Rethinking course:
 # library(rethinking)             # generally don’t want to load rethinking and brms loaded simultaneously
@@ -198,8 +200,7 @@ Are we actually going to get much info on fighter ability from going about it th
 Let's graph the fights in the dataset with each fighter as a vertex, and each fight as an edge:
 
 ```{r fight_graph}
-#| column: screen
-#| out-width: 100%
+#| panel: fill
 
 coords <- read.csv("coords.csv") |>
 # coords <- read.csv("posts/UFC/coords.csv") |>
@@ -217,12 +218,9 @@ g <- UFClefties |>
     vertices = fighters)
 
 # plot
-g |> plot(
-  vertex.size = 5,
-  vertex.label.cex = 0.2,
-  edge.arrow.size = 0.2,
-  # canvas.width = 1000,
-  # canvas.height = 1000,
+plot(g, 
+  canvas.width = 1000,
+  canvas.height = 1000,
   layout = coords)
 
 #cleanup
@@ -258,8 +256,7 @@ fighters$connected <- g.components$membership
 A good chunk of the fighters are unfortunately connected to only a few, and about a fifth are in clusters of size 2; it does look like there's some good info in the graph structure though.  Let's graph the largest connected group:
 
 ```{r 92_graph}
-#| column: screen
-#| out-width: 100%
+#| panel: fill
 
 g92 <- UFClefties |>
   mutate(
@@ -270,14 +267,9 @@ g92 <- UFClefties |>
     directed = TRUE,
     vertices = fighters) |>
   delete_vertices(fighters[fighters$connected_N != 92,]$fighter)
-g92 |> plot(
-  vertex.size = 5,
-  vertex.label.cex = 0.2,
-  edge.arrow.size = 0.2,
-  # margin = -0.25,
-  # asp = 0.5,
-  # canvas.width = 1000,
-  # canvas.height = 500,
+plot(g92, 
+  canvas.width = 1000,
+  canvas.height = 1000,
   layout = layout_with_kk(
     g92, 
     dim = 2,
@@ -459,6 +451,97 @@ Plot key:
  - Blue: sub-Bradley-Terrey model (including only the 92 inter-connected fighters)
  
 Interestingly, the looking at only the 92 inter-connected fighters deviates furthest from the assumptions baked into the prior.
+ 
+### Information-theoretic analysis
+
+How much information does each model actually extract from the data, relative to the information baked into the prior?
+
+The first information theory concept we can apply is the idea of information entropy; information entropy for a continuous variable is defined as:
+
+$$\mathrm{H}(X) = \int f(x) \mathrm{log}(f(x)) \mathrm{d}x$$
+
+To apply this concept to the current question, information entropy can be expanded into the concept of conditional entropy, which is defined as:
+
+$$\mathrm{H}(X | Y) = \int f(x, y) \mathrm{log}(f(x | y)) \mathrm{d}x \mathrm{d}y$$
+
+Alternatively we can also compare the [KL divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence) between each of the models estimated distributions of lefty advantage compared to the Gaussian prior; this can qualitatively be interpreted as the amount of "surprise" we might have at finding the estimate.  
+
+These quantities can be computed with the [philentropy package](https://cran.r-project.org/web//packages//philentropy/index.html).  First make a nice matrix
+
+```{r draws_density}
+#| echo: true
+
+draws.density <- rbind(
+  Prior = seq(from = -5, to = 5, length.out = 2048) |> dnorm(),
+  # Prior = seq(from = -2, to = 2, length.out = 2048) |> dnorm(),
+  Base_Model = density(draws.wide$Base_Model, from = -2, to = 2, n = 2048)$y,
+  BT_Model = density(draws.wide$BT_Model, from = -2, to = 2, n = 2048)$y,
+  BT92_Model = density(draws.wide$BT92_Model, from = -2, to = 2, n = 2048)$y)
+
+# normalize into probability densities
+for (i in 1:nrow(draws.density)) {
+  draws.density[i,] <- draws.density[i,]/sum(draws.density[i,])
+}
+```
+
+Compute KL divergence:
+
+```{r KL_divergence}
+#| echo: true
+
+methods <- "kullback-leibler"
+result <- matrix(nrow = length(methods),
+                 ncol = nrow(draws.density))
+
+for (i in 1:length(methods)) {
+  result[i,] <- dist_one_many(
+    P = draws.density[1,],                # the prior, first row
+    dists = draws.density,                # the models
+    method = methods[[i]],                # use KL divergence
+    unit = "log",                         # use base-e log
+    epsilon =  1e-30                      # offset to avoid division by zero
+  )
+}
+
+data.frame(
+  Dist_Method = methods,
+  Prior = result[,1],
+  Base_Model = result[,2],
+  BT_Model = result[,3],
+  BT92_Model = result[,4]
+)
+```
+
+A comparison table of the various methods in the `philentropy` package:
+
+```{r dist_one_many}
+#| echo: true
+
+methods <- getDistMethods()
+result <- matrix(nrow = length(methods),
+                 ncol = nrow(draws.density))
+
+for (i in 1:length(methods)) {
+  result[i,] <- dist_one_many(
+    P = draws.density[1,],                # the prior, first row
+    dists = draws.density,                # the models
+    method = methods[[i]],                # use method number i
+    unit = "log",                         # use base-e log
+    epsilon =  1e-30                      # offset to avoid division by zero
+  )
+}
+
+data.frame(
+  Dist_Method = methods,
+  Prior = result[,1],
+  Base_Model = result[,2],
+  BT_Model = result[,3],
+  BT92_Model = result[,4]
+)
+```
+
+Conditional entropy:
+
 
 ## Conclusion
 
@@ -466,13 +549,3 @@ So in this case adding information on fighter ability didn't affect the posterio
 
  - The exercise illustrated the limited [expressive power](https://en.wikipedia.org/wiki/Expressive_power_(computer_science)) of brms relative to Stan and the Rethinking package; models will be difficult to express in brms unless they can be coerced into a design matrix, as [Wilkinson notation](https://academic.oup.com/jrsssc/article/22/3/392/6882728?login=false) fundamentally is about converting a formula to a design matrix.
  - Perhaps the "footedness" of the fighters might provide more info?  This would complicate the diasteriomeric relations in each match, as each would then be a relation between four chiral centers, but perhaps the strikes from the lower body are more important than those from the upper body.
-
-## Version History
-
-Updated 2025-02-10:
-
- - improved graphs
- - added the 92-fighter Bradley-Terrey model
- - added license info
- - increased sample draws
- - expanded conclusions

@@ -1,6 +1,7 @@
 project:
   type: website
   output-dir: docs
+  # license: "CC BY-SA 4.0"
 
 website:
   title: "Divergent Cognitions"
@@ -14,8 +15,14 @@ website:
         href: index.xml
       - icon: github
         href: https://github.com/matthew-hoctor
+  page-footer: 
+    center: 
+      - text: "License"
+        href: https://creativecommons.org/licenses/by-sa/4.0/
+        icon: https://upload.wikimedia.org/wikipedia/commons/e/e5/CC_BY-SA_icon.svg
 format:
   html:
+    df-print: paged       # https://quarto.org/docs/get-started/computations/rstudio.html#data-frames
     theme: simplex
     css: styles.css
 
