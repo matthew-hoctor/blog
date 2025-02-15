@@ -9,21 +9,6 @@ categories:
   - Bayesian statistics
   - information theory
 draft: true
-
-toc: true
-toc-depth: 4
-toc-expand: true
-toc-location: left
-toc-title: Contents
-  
-code-fold: show
-code-overflow: wrap
-code-tools: true
-code-link: true
-
-execute: 
-  echo: false
-
 freeze: true
 
 editor: source

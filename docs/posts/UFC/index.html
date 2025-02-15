@@ -133,7 +133,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       </div> <!-- /container-fluid -->
     </nav></header><!-- content --><header id="title-block-header" class="quarto-title-block default toc-left page-columns page-full"><div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <div class="quarto-title-block"><div><h1 class="title">Bradley-Terry models in brms</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+      <div class="quarto-title-block"><div><h1 class="title">Bradley-Terry models in brms</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button" data-quarto-source-url="https://github.com/matthew-hoctor/blog/blob/main/posts/UFC/index.qmd">View Source</a></li></ul></div></div>
                                 <div class="quarto-categories">
                 <div class="quarto-category">brms</div>
                 <div class="quarto-category">Bayesian statistics</div>
@@ -161,7 +161,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Modified</div>
       <div class="quarto-title-meta-contents">
-        <p class="date-modified">February 10, 2025</p>
+        <p class="date-modified">February 14, 2025</p>
       </div>
     </div>
       
@@ -191,7 +191,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   <li><a href="#version-history" id="toc-version-history" class="nav-link" data-scroll-target="#version-history">Version History</a></li>
-  </ul></nav>
+  </ul><div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/matthew-hoctor/blog/blob/main/posts/UFC/index.qmd" class="toc-action">View source</a></p><p><a href="https://github.com/matthew-hoctor/blog/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
 </nav><div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
@@ -201,11 +201,33 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>I recently came across an interesting question while working through the problem sets in the <a href="https://github.com/rmcelreath/stat_rethinking_2025">Statistical Rethinking course</a>. This problem asks us to estimate the advantage of left-handedness within the UFC based on hand coded UFC data from <a href="https://www.sciencedirect.com/science/article/abs/pii/S0003347213003485">this paper</a>. The question is motivated by the fact that lefties are over-represented in the UFC (~20% of fighters), as well as other sports like tennis, fencing, etc. The <a href="https://github.com/matthew-hoctor/blog/blob/main/posts/UFC/UFClefties.csv">dataset</a> includes info on each UFC fight in the years 2010-2012, including the winner and loser, and the handedness of each fighter</p>
 <p>The solution set (and the paper) treat the abilities of each fighter as purely unobserved; i.e.&nbsp;the following causal structure is assumed for the data:</p>
 <div class="cell">
-<div class="cell-output-display">
+<details><summary>Code</summary><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">dagify</span><span class="op">(</span></span>
+<span>  <span class="va">W</span> <span class="op">~</span> <span class="va">A</span> <span class="op">+</span> <span class="va">L</span> <span class="op">+</span> <span class="va">Q</span>,</span>
+<span>  <span class="va">Q</span> <span class="op">~</span> <span class="va">A</span> <span class="op">+</span> <span class="va">L</span>,</span>
+<span>  exposure <span class="op">=</span> <span class="st">"L"</span>,</span>
+<span>  outcome <span class="op">=</span> <span class="st">"W"</span>,</span>
+<span>  latent <span class="op">=</span> <span class="st">"A"</span>,</span>
+<span>  coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>L <span class="op">=</span> <span class="fl">0</span>, W <span class="op">=</span> <span class="fl">1</span>, A <span class="op">=</span> <span class="fl">1</span>,  Q <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>L <span class="op">=</span> <span class="fl">0</span>, W <span class="op">=</span> <span class="fl">0</span>, A <span class="op">=</span> <span class="fl">1</span>,  Q <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">ggdag_status</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">theme_dag_gray_grid</span><span class="op">(</span></span>
+<span>    panel.grid  <span class="op">=</span> <span class="fu">element_blank</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    panel.background <span class="op">=</span> <span class="fu">element_blank</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">labs</span><span class="op">(</span>title<span class="op">=</span><span class="st">''</span>, col<span class="op">=</span><span class="st">'Status'</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
 <p><img src="index_files/figure-html/DAG-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>However we are given some limited information on fighter abilities, since some of the fighters fight in multiple matches. We can include this information with a Bradley-Terrey model:</p>
+<p>Graph key:</p>
+<ul>
+<li>L: left-handedness, the exposure</li>
+<li>A: ability, unobserved</li>
+<li>W: winning a UFC match, the outcome</li>
+<li>Q: qualification for UFC; this is required for winning a UFC match</li>
+</ul>
+<p>Many readers will notice that by considering only fighters who have qualified for UFC, Q, we are here <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2846442/">conditioning on a collider</a>.</p>
+<p>Although the solution set (and the paper) treat the abilities of each fighter as purely unobserved, we are actually given some limited information on fighter abilities: since some of the fighters fight in multiple matches, we can include this information in the model with a Bradley-Terrey model:</p>
 </section><section id="bradley-terry-models" class="level2"><h2 class="anchored" data-anchor-id="bradley-terry-models">Bradley-Terry models</h2>
 <p>Wikipedia defines a <a href="https://en.wikipedia.org/wiki/Bradley%E2%80%93Terry_model">Bradley-Terry model</a> as:</p>
 <p><span class="math display">\[\Pr(i &gt; j) = \frac{a_i}{a_i + a_j}\]</span></p>
@@ -220,7 +242,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><span class="math display">\[\operatorname{logit}(\Pr(i &gt; j)) = \beta_i - \beta_j\]</span></p>
 <p>It seems that this class of models describes the UFClefties question. Andy Milne describes how to parameterize this class of models for <code>brms</code> in this <a href="https://discourse.mc-stan.org/t/bradley-terry-model-in-brms-or-rstanarm-lme4-notation/28932/3">stan forum post</a>; essentially we need a <span class="math inline">\(\beta\)</span> variable for each fighter with a value of 1 if the fighter won the match, a value of-1 if the fighter lost, and a value of 0 otherwise. Adding handedness gives the following model</p>
 <p><span class="math display">\[\operatorname{logit}(\Pr(i &gt; j)) = L + \beta_i - \beta_j\]</span></p>
-<p>Where <span class="math inline">\(L\)</span> denotes the ‘lefty advantage’ and encodes the diasteriomeric relation of the match; <span class="math inline">\(L\)</span> takes the following values:</p>
+<p>Where <span class="math inline">\(L\)</span> denotes the ‘lefty advantage’ and encodes the <a href="https://en.wikipedia.org/wiki/Diastereomer">diasteriomeric</a> relation of the match; <span class="math inline">\(L\)</span> takes the following values:</p>
 <ul>
 <li>0 when a righty fights a righty or a lefty fights a lefty</li>
 <li>1 when a lefty wins over a righty</li>
@@ -229,14 +251,50 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Are we actually going to get much info on fighter ability from going about it this way? Let’s poke a bit at the data to find out.</p>
 </section><section id="exploratory" class="level2 page-columns page-full"><h2 class="anchored" data-anchor-id="exploratory">Exploratory</h2>
 <p>Let’s graph the fights in the dataset with each fighter as a vertex, and each fight as an edge:</p>
-<div class="cell page-columns page-full">
-<div class="cell-output-display column-screen">
+<div class="cell page-columns page-full" data-lightbox="true">
+<details><summary>Code</summary><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coords</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.csv</a></span><span class="op">(</span><span class="st">"coords.csv"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="co"># coords &lt;- read.csv("posts/UFC/coords.csv") |&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">X</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># graph</span></span>
+<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="va">UFClefties</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span></span>
+<span>    winner <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="va">fighter1.win</span> <span class="op">==</span> <span class="fl">1</span>, <span class="va">fighter1</span>, <span class="va">fighter2</span><span class="op">)</span>,</span>
+<span>    loser <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="va">fighter1.win</span> <span class="op">==</span> <span class="fl">0</span>, <span class="va">fighter1</span>, <span class="va">fighter2</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="va">winner</span>, <span class="va">loser</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">graph_from_data_frame</span><span class="op">(</span></span>
+<span>    directed <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    vertices <span class="op">=</span> <span class="va">fighters</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># plot</span></span>
+<span><span class="va">g</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span></span>
+<span>  vertex.size <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  vertex.label.cex <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>  edge.arrow.size <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>  layout <span class="op">=</span> <span class="va">coords</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display column-screen">
 <p><img src="index_files/figure-html/fight_graph-1.png" class="img-fluid" style="width:100.0%"></p>
 </div>
+<details><summary>Code</summary><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co">#cleanup</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span><span class="va">coords</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <p>That might be a bit difficult to see, depending on your screen width; here’s a tabulation of cluster size (the number of fighters connected to one another by any number of fights):</p>
 <div class="cell">
-<div class="cell-output-display">
+<details><summary>Code</summary><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">g.components</span> <span class="op">&lt;-</span> <span class="fu">components</span><span class="op">(</span><span class="va">g</span>, mode <span class="op">=</span> <span class="st">"weak"</span><span class="op">)</span></span>
+<span><span class="va">fighters</span><span class="op">$</span><span class="va">connected</span> <span class="op">&lt;-</span> <span class="va">g.components</span><span class="op">$</span><span class="va">membership</span></span>
+<span></span>
+<span><span class="op">(</span><span class="va">fighters</span> <span class="op">&lt;-</span> <span class="va">fighters</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">connected</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>connected_N <span class="op">=</span> <span class="fu">n</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">connected_N</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">summarize</span><span class="op">(</span>fighters <span class="op">=</span> <span class="fu">n</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="va">connected_N</span>, <span class="va">fighters</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>cumulative <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cumsum.html">cumsum</a></span><span class="op">(</span><span class="va">fighters</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
 
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
@@ -246,8 +304,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>A good chunk of the fighters are unfortunately connected to only a few, and about a fifth are in clusters of size 2; it does look like there’s some good info in the graph structure though. Let’s graph the largest connected group:</p>
-<div class="cell page-columns page-full">
-<div class="cell-output-display column-screen">
+<div class="cell page-columns page-full" data-lightbox="true">
+<details><summary>Code</summary><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">g92</span> <span class="op">&lt;-</span> <span class="va">UFClefties</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span></span>
+<span>    winner <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="va">fighter1.win</span> <span class="op">==</span> <span class="fl">1</span>, <span class="va">fighter1</span>, <span class="va">fighter2</span><span class="op">)</span>,</span>
+<span>    loser <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="va">fighter1.win</span> <span class="op">==</span> <span class="fl">0</span>, <span class="va">fighter1</span>, <span class="va">fighter2</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="va">winner</span>, <span class="va">loser</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">graph_from_data_frame</span><span class="op">(</span></span>
+<span>    directed <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    vertices <span class="op">=</span> <span class="va">fighters</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">delete_vertices</span><span class="op">(</span><span class="va">fighters</span><span class="op">[</span><span class="va">fighters</span><span class="op">$</span><span class="va">connected_N</span> <span class="op">!=</span> <span class="fl">92</span>,<span class="op">]</span><span class="op">$</span><span class="va">fighter</span><span class="op">)</span></span>
+<span><span class="va">g92</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span></span>
+<span>  vertex.size <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  vertex.label.cex <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>  edge.arrow.size <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>  <span class="co"># margin = -0.25,</span></span>
+<span>  <span class="co"># asp = 0.5,</span></span>
+<span>  <span class="co"># canvas.width = 1000,</span></span>
+<span>  <span class="co"># canvas.height = 500,</span></span>
+<span>  layout <span class="op">=</span> <span class="fu">layout_with_kk</span><span class="op">(</span></span>
+<span>    <span class="va">g92</span>, </span>
+<span>    dim <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>    maxiter <span class="op">=</span> <span class="fl">500</span><span class="op">*</span><span class="fu">vcount</span><span class="op">(</span><span class="va">g</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display column-screen">
 <p><img src="index_files/figure-html/92_graph-1.png" class="img-fluid" style="width:100.0%"></p>
 </div>
 </div>
@@ -256,7 +335,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="dataset" class="level3"><h3 class="anchored" data-anchor-id="dataset">Dataset</h3>
 <p>The dataset includes 244 fights, and a Bradley-Terry model requires a variable for each fight; so here’s the code I used to MUNGE the data:</p>
 <div class="cell">
-<details open=""><summary>Code</summary><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># MUNGE the data:</span></span>
+<details open=""><summary>Code</summary><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># MUNGE the data:</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="va">UFClefties</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span></span>
 <span>    Y <span class="op">=</span> <span class="fl">1L</span>,                             <span class="co"># response var; brms likes it this way</span></span>
@@ -289,7 +368,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>Here’s a peek of a small chunk of the fully-MUNGE-ed dataset:</p>
 <div class="cell">
-<details open=""><summary>Code</summary><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">d</span><span class="op">[</span><span class="fl">56</span><span class="op">:</span><span class="fl">65</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open=""><summary>Code</summary><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">d</span><span class="op">[</span><span class="fl">56</span><span class="op">:</span><span class="fl">65</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 
 <div data-pagedtable="false">
@@ -302,7 +381,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section><section id="brms-models" class="level3"><h3 class="anchored" data-anchor-id="brms-models">brms Models</h3>
 <p>To start off with, here’s the model from the paper and the solution set:</p>
 <div class="cell">
-<details open=""><summary>Code</summary><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">brm</span><span class="op">(</span></span>
+<details open=""><summary>Code</summary><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">brm</span><span class="op">(</span></span>
 <span>  formula <span class="op">=</span> <span class="fu">bf</span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="fl">0</span> <span class="op">+</span> <span class="va">L</span>, family <span class="op">=</span> <span class="va">bernoulli</span><span class="op">)</span>,</span>
 <span>  prior <span class="op">=</span> <span class="fu">prior</span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="va">b</span><span class="op">)</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">d</span>, </span>
@@ -312,10 +391,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span>  seed <span class="op">=</span> <span class="op">(</span><span class="va">seed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>The seed used is <code>{r} print(seed)</code>.</p>
+<p>The seed used is 1739585912.</p>
 <p>To specify the Bradley-Terrey model you might worry that a large formula would be needed; fortunately brms follows the standard <a href="https://academic.oup.com/jrsssc/article/22/3/392/6882728?login=false">Wilkinson formula</a> syntax (e.g.&nbsp;that of the R stats package, nlme, the Bayesian python package bambi, etc), so instead of writing out all of the variables in the formula we can specify the formula with <code>bf(Y ~ 0 + ., family = bernoulli)</code>, where <code>.</code> denotes the sum of all variables (other than the response variable, <code>Y</code>); here <code>0</code> tells to brms not to automatically add an intercept to the model.</p>
 <div class="cell">
-<details open=""><summary>Code</summary><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">BT_model</span> <span class="op">&lt;-</span> <span class="fu">brm</span><span class="op">(</span></span>
+<details open=""><summary>Code</summary><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">BT_model</span> <span class="op">&lt;-</span> <span class="fu">brm</span><span class="op">(</span></span>
 <span>  formula <span class="op">=</span> <span class="fu">bf</span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="fl">0</span> <span class="op">+</span> <span class="va">.</span>, family <span class="op">=</span> <span class="va">bernoulli</span><span class="op">)</span>,</span>
 <span>  prior <span class="op">=</span> <span class="fu">prior</span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="va">b</span><span class="op">)</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">d</span>, </span>
@@ -325,9 +404,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span>  seed <span class="op">=</span> <span class="op">(</span><span class="va">seed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>The seed used for this one is <code>{r} print(seed)</code>. For fun, let’s re-run the model using only the largest cluster:</p>
+<p>The seed used for this one is 1739585981. For fun, let’s re-run the model using only the largest cluster:</p>
 <div class="cell">
-<details open=""><summary>Code</summary><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">d.92</span> <span class="op">&lt;-</span> <span class="va">d</span><span class="op">[</span><span class="va">UFClefties</span><span class="op">$</span><span class="va">fighter1</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="va">fighters</span><span class="op">$</span><span class="va">connected_N</span> <span class="op">==</span> <span class="fl">92</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span><span class="op">:</span><span class="fl">244</span><span class="op">)</span>,<span class="op">]</span></span>
+<details open=""><summary>Code</summary><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">d.92</span> <span class="op">&lt;-</span> <span class="va">d</span><span class="op">[</span><span class="va">UFClefties</span><span class="op">$</span><span class="va">fighter1</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="va">fighters</span><span class="op">$</span><span class="va">connected_N</span> <span class="op">==</span> <span class="fl">92</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span><span class="op">:</span><span class="fl">244</span><span class="op">)</span>,<span class="op">]</span></span>
 <span></span>
 <span><span class="va">BT92_model</span> <span class="op">&lt;-</span> <span class="fu">brm</span><span class="op">(</span></span>
 <span>  formula <span class="op">=</span> <span class="fu">bf</span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="fl">0</span> <span class="op">+</span> <span class="va">.</span>, family <span class="op">=</span> <span class="va">bernoulli</span><span class="op">)</span>,</span>
@@ -339,24 +418,65 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span>  seed <span class="op">=</span> <span class="op">(</span><span class="va">seed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>The seed used is <code>{r} print(seed)</code>.</p>
+<p>The seed used is 1739586149.</p>
 <p>Trace and trank plots look fine for these models; they will not be reproduced here.</p>
 </section></section><section id="results" class="level2"><h2 class="anchored" data-anchor-id="results">Results</h2>
 <section id="posterior-probabilities" class="level3"><h3 class="anchored" data-anchor-id="posterior-probabilities">Posterior probabilities</h3>
 <p>Here’s a tabulation of the the posterior probabilities with 89% HDI:</p>
 <div class="cell">
-<div class="cell-output-display">
+<details><summary>Code</summary><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="op">(</span><span class="va">draws</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">draws.wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span></span>
+<span>  <span class="co"># Prior = rnorm(n = chains*(iter-warmup), mean = 0L, sd = 1L),</span></span>
+<span>  <span class="va">model</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">as_draws_df</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">select</span><span class="op">(</span><span class="va">b_L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">rename</span><span class="op">(</span>Base_Model <span class="op">=</span> <span class="va">b_L</span><span class="op">)</span>,</span>
+<span>  <span class="va">BT_model</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">as_draws_df</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">select</span><span class="op">(</span><span class="va">b_L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">rename</span><span class="op">(</span>BT_Model <span class="op">=</span> <span class="va">b_L</span><span class="op">)</span>,</span>
+<span>  <span class="va">BT92_model</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">as_draws_df</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">select</span><span class="op">(</span><span class="va">b_L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">rename</span><span class="op">(</span>BT92_Model <span class="op">=</span> <span class="va">b_L</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">pivot_longer</span><span class="op">(</span>cols <span class="op">=</span> <span class="fu">everything</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span>  <span class="co"># pivots all columns</span></span>
+<span>  <span class="fu">rename</span><span class="op">(</span>Model <span class="op">=</span> <span class="va">name</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">Model</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mean_hdi</span><span class="op">(</span><span class="va">value</span>, .width <span class="op">=</span> <span class="fl">.89</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
 
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
-{"columns":[{"label":["Model"],"name":[1],"type":["chr"],"align":["left"]},{"label":["value"],"name":[2],"type":["dbl"],"align":["right"]},{"label":[".lower"],"name":[3],"type":["dbl"],"align":["right"]},{"label":[".upper"],"name":[4],"type":["dbl"],"align":["right"]},{"label":[".width"],"name":[5],"type":["dbl"],"align":["right"]},{"label":[".point"],"name":[6],"type":["chr"],"align":["left"]},{"label":[".interval"],"name":[7],"type":["chr"],"align":["left"]}],"data":[{"1":"Base_Model","2":"0.0003412101","3":"-0.3773040","4":"0.3800849","5":"0.89","6":"mean","7":"hdi"},{"1":"BT_Model","2":"0.0467552812","3":"-0.4710130","4":"0.5765231","5":"0.89","6":"mean","7":"hdi"},{"1":"BT92_Model","2":"0.2941606004","3":"-0.4009103","4":"0.9877866","5":"0.89","6":"mean","7":"hdi"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["Model"],"name":[1],"type":["chr"],"align":["left"]},{"label":["value"],"name":[2],"type":["dbl"],"align":["right"]},{"label":[".lower"],"name":[3],"type":["dbl"],"align":["right"]},{"label":[".upper"],"name":[4],"type":["dbl"],"align":["right"]},{"label":[".width"],"name":[5],"type":["dbl"],"align":["right"]},{"label":[".point"],"name":[6],"type":["chr"],"align":["left"]},{"label":[".interval"],"name":[7],"type":["chr"],"align":["left"]}],"data":[{"1":"Base_Model","2":"-0.0003375623","3":"-0.3759727","4":"0.3769857","5":"0.89","6":"mean","7":"hdi"},{"1":"BT_Model","2":"0.0468183657","3":"-0.4778453","4":"0.5697148","5":"0.89","6":"mean","7":"hdi"},{"1":"BT92_Model","2":"0.2946370236","3":"-0.3901831","4":"0.9856854","5":"0.89","6":"mean","7":"hdi"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 </div>
 </div>
 <p>And the posterior predictive plot for the lefty advantage:</p>
 <div class="cell">
-<div class="cell-output-display">
+<details><summary>Code</summary><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">draws</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">ggplot</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">value</span>, fill <span class="op">=</span> <span class="va">Model</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">stat_function</span><span class="op">(</span></span>
+<span>    fun <span class="op">=</span> <span class="va">dnorm</span>, </span>
+<span>    geom <span class="op">=</span> <span class="st">"area"</span>,</span>
+<span>    color <span class="op">=</span> <span class="st">"black"</span>, </span>
+<span>    fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/rgb.html">rgb</a></span><span class="op">(</span><span class="fl">0.9</span>, <span class="fl">0.5</span>, <span class="fl">0</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>    alpha <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_density</span><span class="op">(</span></span>
+<span>    alpha <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>    from <span class="op">=</span> <span class="op">-</span><span class="fl">2.1</span>,</span>
+<span>    to <span class="op">=</span> <span class="fl">2.1</span>,</span>
+<span>    n <span class="op">=</span> <span class="fl">2048</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">xlab</span><span class="op">(</span><span class="st">"Lefty advantage"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ylab</span><span class="op">(</span><span class="st">"Probability Density"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">theme</span><span class="op">(</span>                                            <span class="co"># add x &amp; y lines</span></span>
+<span>    panel.grid  <span class="op">=</span> <span class="fu">element_blank</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    panel.background <span class="op">=</span> <span class="fu">element_blank</span><span class="op">(</span><span class="op">)</span>,             <span class="co"># remove gray background</span></span>
+<span>    axis.line.x <span class="op">=</span> <span class="fu">element_line</span><span class="op">(</span>colour <span class="op">=</span> <span class="st">'black'</span>, linewidth <span class="op">=</span> <span class="fl">0.5</span>, linetype<span class="op">=</span><span class="st">'solid'</span><span class="op">)</span>,</span>
+<span>    axis.line.y <span class="op">=</span> <span class="fu">element_line</span><span class="op">(</span>colour <span class="op">=</span> <span class="st">'black'</span>, linewidth <span class="op">=</span> <span class="fl">0.5</span>, linetype<span class="op">=</span><span class="st">'solid'</span><span class="op">)</span>,</span>
+<span>    legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">scale_x_continuous</span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1.5</span>, <span class="fl">1.5</span><span class="op">)</span>, expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">scale_y_continuous</span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.7</span><span class="op">)</span>, expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
 <p><img src="index_files/figure-html/posterior_pred_plot-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
@@ -367,13 +487,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Green: full Bradley-Terrey model (all data points)</li>
 <li>Blue: sub-Bradley-Terrey model (including only the 92 inter-connected fighters)</li>
 </ul>
-<p>Interestingly, the looking at only the 92 inter-connected fighters deviates furthest from the assumptions baked into the prior.</p>
+<p>Interestingly, looking at only the 92 inter-connected fighters deviates furthest from the assumptions baked into the prior.</p>
 </section></section><section id="conclusion" class="level2"><h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
 <p>So in this case adding information on fighter ability didn’t affect the posterior distribution much, and probably didn’t contain much information given the small size of the clusters, and low average number of fights for each fighter, but it was an interesting exercise. Some parting thoughts:</p>
 <ul>
 <li>The exercise illustrated the limited <a href="https://en.wikipedia.org/wiki/Expressive_power_(computer_science)">expressive power</a> of brms relative to Stan and the Rethinking package; models will be difficult to express in brms unless they can be coerced into a design matrix, as <a href="https://academic.oup.com/jrsssc/article/22/3/392/6882728?login=false">Wilkinson notation</a> fundamentally is about converting a formula to a design matrix.</li>
 <li>Perhaps the “footedness” of the fighters might provide more info? This would complicate the diasteriomeric relations in each match, as each would then be a relation between four chiral centers, but perhaps the strikes from the lower body are more important than those from the upper body.</li>
 </ul></section><section id="version-history" class="level2"><h2 class="anchored" data-anchor-id="version-history">Version History</h2>
+<p>Updated 2025-02-14:</p>
+<ul>
+<li>inline code</li>
+<li>cleanup dag</li>
+<li>code folding</li>
+<li>add <a href="https://quarto.org/docs/output-formats/html-lightbox-figures.html">lightbox</a> to fight graphs</li>
+</ul>
 <p>Updated 2025-02-10:</p>
 <ul>
 <li>improved graphs</li>
@@ -383,8 +510,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>expanded conclusions</li>
 </ul>
 
-
-<!-- -->
 
 </section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div id="quarto-reuse" class="quarto-appendix-contents"><div>CC BY-SA 4.0</div></div></section></div></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -669,486 +794,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
   }
 });
-</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb6" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Bradley-Terry models in brms"</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> "Matthew Hoctor"</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "2025-02-02"</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="an">date-modified:</span><span class="co"> last-modified</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="an">license:</span><span class="co"> "CC BY-SA 4.0"</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> </span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - brms</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">  - Bayesian statistics</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="an">draft:</span><span class="co"> false</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="an">toc:</span><span class="co"> true</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="an">toc-depth:</span><span class="co"> 4</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="an">toc-expand:</span><span class="co"> true</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="an">toc-location:</span><span class="co"> left</span></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="an">toc-title:</span><span class="co"> Contents</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="co">  </span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="an">code-fold:</span><span class="co"> show</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="an">code-overflow:</span><span class="co"> wrap</span></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="an">code-tools:</span><span class="co"> true</span></span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="an">code-link:</span><span class="co"> true</span></span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="an">freeze:</span><span class="co"> false</span></span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span><span class="co"> </span></span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="co">  echo: false</span></span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="an">editor:</span><span class="co"> source</span></span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a><span class="in">```{r setup}</span></span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Load libraries</span></span>
-<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a><span class="do">##    General:</span></span>
-<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a><span class="co"># library(data.table)</span></span>
-<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a><span class="co"># library(devtools)</span></span>
-<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a><span class="co"># library(remotes)</span></span>
-<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a><span class="co"># library(lattice)                # alternate plotting system</span></span>
-<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a><span class="co"># library(extraDistr)             # extra distributions</span></span>
-<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a><span class="co"># library(philentropy)            # similarity &amp; distance measures</span></span>
-<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a><span class="do">##    Rethinking course:</span></span>
-<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a><span class="co"># library(rethinking)             # generally don’t want to load rethinking and brms loaded simultaneously</span></span>
-<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a><span class="do">## Directed Graphs</span></span>
-<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggdag)</span>
-<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a><span class="co"># library(dagitty)</span></span>
-<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(igraph)</span>
-<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a><span class="co"># library(rgl)                    # 3d graph visualization</span></span>
-<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="do">##    Other Bayesian analysis packages:</span></span>
-<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a><span class="co"># library(cmdstanr)               # loaded from rethinking package</span></span>
-<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a><span class="co"># library(loo)                    # LOO-CV</span></span>
-<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a><span class="co"># library(projpred)</span></span>
-<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a><span class="co"># library(rstantools)</span></span>
-<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a><span class="do">##    Kurtz packages</span></span>
-<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a><span class="co"># library(ape)</span></span>
-<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a><span class="co"># library(bayesplot)</span></span>
-<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)                   <span class="co"># BRMS</span></span>
-<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a><span class="co"># library(broom)</span></span>
-<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a><span class="co"># library(flextable)</span></span>
-<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(GGally)                 <span class="co"># ggpairs</span></span>
-<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a><span class="co"># library(ggdark)</span></span>
-<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a><span class="co"># library(ggmcmc)</span></span>
-<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a><span class="co"># library(ggrepel)</span></span>
-<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a><span class="co"># library(ggthemes)</span></span>
-<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a><span class="co"># library(ggtree)</span></span>
-<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a><span class="co"># library(ghibli)</span></span>
-<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a><span class="co"># library(gtools)                 #ddirichlet()</span></span>
-<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a><span class="co"># library(invgamma)</span></span>
-<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a><span class="co"># library(patchwork)</span></span>
-<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a><span class="co"># library(posterior)</span></span>
-<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a><span class="co"># library(psych)</span></span>
-<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a><span class="co"># library(rcartocolor)</span></span>
-<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a><span class="co"># library(Rcpp)</span></span>
-<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a><span class="co"># library(rstan)</span></span>
-<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a><span class="co"># library(santoku)</span></span>
-<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a><span class="co"># library(StanHeaders)</span></span>
-<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a><span class="co"># library(statebins)</span></span>
-<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidybayes)              <span class="co"># mean_hdi()                </span></span>
-<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a><span class="co"># library(viridis)</span></span>
-<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a><span class="co"># library(viridisLite)</span></span>
-<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a><span class="co"># library(wesanderson)</span></span>
-<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a><span class="co"># Set options for cores, chains &amp; threading:</span></span>
-<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a>cores <span class="ot">=</span> parallel<span class="sc">::</span><span class="fu">detectCores</span>()</span>
-<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a>chains <span class="ot">=</span> <span class="fu">ifelse</span>(cores <span class="sc">&gt;=</span><span class="dv">4</span>, 4L, cores)</span>
-<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a>iter <span class="ot">=</span> 40000L</span>
-<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a>warmup <span class="ot">=</span> 2000L</span>
-<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(</span>
-<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a>  <span class="at">mc.cores =</span> parallel<span class="sc">::</span><span class="fu">detectCores</span>(),</span>
-<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Within-chain parallelization; see vignette("brms_threading")</span></span>
-<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a>  <span class="at">brms.threads =</span> <span class="fu">threading</span>(</span>
-<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a>    <span class="at">threads =</span> cores <span class="sc">%/%</span> chains,       <span class="co"># == floor(cores/chains)</span></span>
-<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a>    <span class="at">grainsize =</span> <span class="cn">NULL</span>,                 <span class="co"># default</span></span>
-<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a>    <span class="at">static =</span> <span class="cn">TRUE</span>)                    <span class="co"># required for reproducibility; disables adaptive scheduling</span></span>
-<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a><span class="co"># cleanup</span></span>
-<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(cores)</span>
-<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a><span class="in">```{r UFClefties}</span></span>
-<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a><span class="co"># load data from Statistical Rethinking course package:</span></span>
-<span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"UFClefties"</span>, <span class="at">package =</span> <span class="st">"rethinking"</span>)</span>
-<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a><span class="co"># write .csv file:</span></span>
-<span id="cb6-110"><a href="#cb6-110" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(UFClefties, <span class="at">file =</span> <span class="st">"UFClefties.csv"</span>)</span>
-<span id="cb6-111"><a href="#cb6-111" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-112"><a href="#cb6-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fighters}</span></span>
-<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a>fighters <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a>  UFClefties <span class="sc">|&gt;</span> </span>
-<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(fight, fighter1, fighter1.lefty, fighter1.win) <span class="sc">|&gt;</span> </span>
-<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rename</span>(<span class="at">fighter =</span> fighter1,</span>
-<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a>           <span class="at">lefty =</span> fighter1.lefty,</span>
-<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a>           <span class="at">win =</span> fighter1.win),</span>
-<span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a>  UFClefties <span class="sc">|&gt;</span> </span>
-<span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(fight, fighter2, fighter2.lefty, fighter1.win) <span class="sc">|&gt;</span> </span>
-<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rename</span>(<span class="at">fighter =</span> fighter2,</span>
-<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a>           <span class="at">lefty =</span> fighter2.lefty,</span>
-<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a>           <span class="at">win =</span> fighter1.win) <span class="sc">|&gt;</span></span>
-<span id="cb6-125"><a href="#cb6-125" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">win =</span> <span class="fu">if_else</span>(win <span class="sc">==</span> <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>))) <span class="sc">|&gt;</span></span>
-<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(fighter) <span class="sc">|&gt;</span></span>
-<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb6-128"><a href="#cb6-128" aria-hidden="true" tabindex="-1"></a>    <span class="at">Fights =</span> <span class="fu">length</span>(fight),</span>
-<span id="cb6-129"><a href="#cb6-129" aria-hidden="true" tabindex="-1"></a>    <span class="at">Wins =</span> <span class="fu">sum</span>(win)</span>
-<span id="cb6-130"><a href="#cb6-130" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>fight, <span class="sc">-</span>win) <span class="sc">|&gt;</span></span>
-<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>() <span class="sc">|&gt;</span></span>
-<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
-<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(fighter)</span>
-<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-137"><a href="#cb6-137" aria-hidden="true" tabindex="-1"></a><span class="fu">## The UFClefties question</span></span>
-<span id="cb6-138"><a href="#cb6-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-139"><a href="#cb6-139" aria-hidden="true" tabindex="-1"></a>I recently came across an interesting question while working through the problem sets in the <span class="co">[</span><span class="ot">Statistical Rethinking course</span><span class="co">](https://github.com/rmcelreath/stat_rethinking_2025)</span>.  This problem asks us to estimate the advantage of left-handedness within the UFC based on hand coded UFC data from <span class="co">[</span><span class="ot">this paper</span><span class="co">](https://www.sciencedirect.com/science/article/abs/pii/S0003347213003485)</span>.  The question is motivated by the fact that lefties are over-represented in the UFC (~20% of fighters), as well as other sports like tennis, fencing, etc.  The <span class="co">[</span><span class="ot">dataset</span><span class="co">](https://github.com/matthew-hoctor/blog/blob/main/posts/UFC/UFClefties.csv)</span> includes info on each UFC fight in the years 2010-2012, including the winner and loser, and the handedness of each fighter</span>
-<span id="cb6-140"><a href="#cb6-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-141"><a href="#cb6-141" aria-hidden="true" tabindex="-1"></a>The solution set (and the paper) treat the abilities of each fighter as purely unobserved; i.e. the following causal structure is assumed for the data:</span>
-<span id="cb6-142"><a href="#cb6-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-143"><a href="#cb6-143" aria-hidden="true" tabindex="-1"></a><span class="in">```{r DAG}</span></span>
-<span id="cb6-144"><a href="#cb6-144" aria-hidden="true" tabindex="-1"></a><span class="fu">dagify</span>(</span>
-<span id="cb6-145"><a href="#cb6-145" aria-hidden="true" tabindex="-1"></a>  W <span class="sc">~</span> A <span class="sc">+</span> L <span class="sc">+</span> Q,</span>
-<span id="cb6-146"><a href="#cb6-146" aria-hidden="true" tabindex="-1"></a>  Q <span class="sc">~</span> A <span class="sc">+</span> L,</span>
-<span id="cb6-147"><a href="#cb6-147" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure =</span> <span class="st">"L"</span>,</span>
-<span id="cb6-148"><a href="#cb6-148" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"W"</span>,</span>
-<span id="cb6-149"><a href="#cb6-149" aria-hidden="true" tabindex="-1"></a>  <span class="at">latent =</span> <span class="st">"A"</span>,</span>
-<span id="cb6-150"><a href="#cb6-150" aria-hidden="true" tabindex="-1"></a>  <span class="at">labels =</span> <span class="fu">c</span>(</span>
-<span id="cb6-151"><a href="#cb6-151" aria-hidden="true" tabindex="-1"></a>    <span class="st">"W"</span> <span class="ot">=</span> <span class="st">"Win"</span>,</span>
-<span id="cb6-152"><a href="#cb6-152" aria-hidden="true" tabindex="-1"></a>    <span class="st">"A"</span> <span class="ot">=</span> <span class="st">"Fighter</span><span class="sc">\n</span><span class="st">Ability"</span>,</span>
-<span id="cb6-153"><a href="#cb6-153" aria-hidden="true" tabindex="-1"></a>    <span class="st">"L"</span> <span class="ot">=</span> <span class="st">"Left-handed-ness"</span>,</span>
-<span id="cb6-154"><a href="#cb6-154" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Q"</span> <span class="ot">=</span> <span class="st">"UFC</span><span class="sc">\n</span><span class="st">Qualification"</span>),</span>
-<span id="cb6-155"><a href="#cb6-155" aria-hidden="true" tabindex="-1"></a>  <span class="at">coords =</span> <span class="fu">list</span>(</span>
-<span id="cb6-156"><a href="#cb6-156" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">c</span>(<span class="at">L =</span> <span class="dv">0</span>, <span class="at">W =</span> <span class="dv">1</span>, <span class="at">A =</span> <span class="dv">1</span>,  <span class="at">Q =</span> <span class="dv">0</span>),</span>
-<span id="cb6-157"><a href="#cb6-157" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">c</span>(<span class="at">L =</span> <span class="dv">0</span>, <span class="at">W =</span> <span class="dv">0</span>, <span class="at">A =</span> <span class="dv">1</span>,  <span class="at">Q =</span> <span class="dv">1</span>))) <span class="sc">|&gt;</span></span>
-<span id="cb6-158"><a href="#cb6-158" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggdag_status</span>(</span>
-<span id="cb6-159"><a href="#cb6-159" aria-hidden="true" tabindex="-1"></a>    <span class="at">text =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb6-160"><a href="#cb6-160" aria-hidden="true" tabindex="-1"></a>    <span class="at">use_labels =</span> <span class="st">"label"</span>) <span class="sc">+</span> </span>
-<span id="cb6-161"><a href="#cb6-161" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_dag_gray_grid</span>(</span>
-<span id="cb6-162"><a href="#cb6-162" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid  =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb6-163"><a href="#cb6-163" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.background =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
-<span id="cb6-164"><a href="#cb6-164" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">''</span>, <span class="at">col=</span><span class="st">'Status'</span>)</span>
-<span id="cb6-165"><a href="#cb6-165" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-166"><a href="#cb6-166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-167"><a href="#cb6-167" aria-hidden="true" tabindex="-1"></a>However we are given some limited information on fighter abilities, since some of the fighters fight in multiple matches.  We can include this information with a Bradley-Terrey model:</span>
-<span id="cb6-168"><a href="#cb6-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-169"><a href="#cb6-169" aria-hidden="true" tabindex="-1"></a><span class="fu">## Bradley-Terry models</span></span>
-<span id="cb6-170"><a href="#cb6-170" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-171"><a href="#cb6-171" aria-hidden="true" tabindex="-1"></a>Wikipedia defines a <span class="co">[</span><span class="ot">Bradley-Terry model</span><span class="co">](https://en.wikipedia.org/wiki/Bradley%E2%80%93Terry_model)</span> as:</span>
-<span id="cb6-172"><a href="#cb6-172" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-173"><a href="#cb6-173" aria-hidden="true" tabindex="-1"></a>$$\Pr(i &gt; j) = \frac{a_i}{a_i + a_j}$$</span>
-<span id="cb6-174"><a href="#cb6-174" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-175"><a href="#cb6-175" aria-hidden="true" tabindex="-1"></a>Where</span>
-<span id="cb6-176"><a href="#cb6-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-177"><a href="#cb6-177" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>$\Pr(i &gt; j)$ is the probability of a pairwise comparison of element i vs element j is true; e.g. in an MMA match between fighter i and fighter j, fighter i wins</span>
-<span id="cb6-178"><a href="#cb6-178" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>$a_i = e^{\beta_i}$, where $\beta_i$ is a real value assigned to element i; e.g. the skill of fighter i</span>
-<span id="cb6-179"><a href="#cb6-179" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb6-180"><a href="#cb6-180" aria-hidden="true" tabindex="-1"></a>When transformed to the log-odds scale we get:</span>
-<span id="cb6-181"><a href="#cb6-181" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-182"><a href="#cb6-182" aria-hidden="true" tabindex="-1"></a>$$\operatorname{logit}(\Pr(i &gt; j)) = \beta_i - \beta_j$$</span>
-<span id="cb6-183"><a href="#cb6-183" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-184"><a href="#cb6-184" aria-hidden="true" tabindex="-1"></a>It seems that this class of models describes the UFClefties question.  Andy Milne describes how to parameterize this class of models for <span class="in">`brms`</span> in this <span class="co">[</span><span class="ot">stan forum post</span><span class="co">](https://discourse.mc-stan.org/t/bradley-terry-model-in-brms-or-rstanarm-lme4-notation/28932/3)</span>; essentially we need a $\beta$ variable for each fighter with a value of 1 if the fighter won the match, a value of-1 if the fighter lost, and a value of 0 otherwise.  Adding handedness gives the following model</span>
-<span id="cb6-185"><a href="#cb6-185" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-186"><a href="#cb6-186" aria-hidden="true" tabindex="-1"></a>$$\operatorname{logit}(\Pr(i &gt; j)) = L + \beta_i - \beta_j$$</span>
-<span id="cb6-187"><a href="#cb6-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-188"><a href="#cb6-188" aria-hidden="true" tabindex="-1"></a>Where $L$ denotes the 'lefty advantage' and encodes the diasteriomeric relation of the match; $L$ takes the following values:</span>
-<span id="cb6-189"><a href="#cb6-189" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-190"><a href="#cb6-190" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>0 when a righty fights a righty or a lefty fights a lefty</span>
-<span id="cb6-191"><a href="#cb6-191" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>1 when a lefty wins over a righty</span>
-<span id="cb6-192"><a href="#cb6-192" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>-1 when a righty wins over a lefty</span>
-<span id="cb6-193"><a href="#cb6-193" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb6-194"><a href="#cb6-194" aria-hidden="true" tabindex="-1"></a>Are we actually going to get much info on fighter ability from going about it this way?  Let's poke a bit at the data to find out.</span>
-<span id="cb6-195"><a href="#cb6-195" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-196"><a href="#cb6-196" aria-hidden="true" tabindex="-1"></a><span class="fu">## Exploratory</span></span>
-<span id="cb6-197"><a href="#cb6-197" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-198"><a href="#cb6-198" aria-hidden="true" tabindex="-1"></a>Let's graph the fights in the dataset with each fighter as a vertex, and each fight as an edge:</span>
-<span id="cb6-199"><a href="#cb6-199" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-200"><a href="#cb6-200" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fight_graph}</span></span>
-<span id="cb6-201"><a href="#cb6-201" aria-hidden="true" tabindex="-1"></a><span class="co">#| column: screen</span></span>
-<span id="cb6-202"><a href="#cb6-202" aria-hidden="true" tabindex="-1"></a><span class="co">#| out-width: 100%</span></span>
-<span id="cb6-203"><a href="#cb6-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-204"><a href="#cb6-204" aria-hidden="true" tabindex="-1"></a>coords <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"coords.csv"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb6-205"><a href="#cb6-205" aria-hidden="true" tabindex="-1"></a><span class="co"># coords &lt;- read.csv("posts/UFC/coords.csv") |&gt;</span></span>
-<span id="cb6-206"><a href="#cb6-206" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>X) <span class="sc">|&gt;</span></span>
-<span id="cb6-207"><a href="#cb6-207" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.matrix</span>()</span>
-<span id="cb6-208"><a href="#cb6-208" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-209"><a href="#cb6-209" aria-hidden="true" tabindex="-1"></a><span class="co"># graph</span></span>
-<span id="cb6-210"><a href="#cb6-210" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> UFClefties <span class="sc">|&gt;</span></span>
-<span id="cb6-211"><a href="#cb6-211" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb6-212"><a href="#cb6-212" aria-hidden="true" tabindex="-1"></a>    <span class="at">winner =</span> <span class="fu">if_else</span>(fighter1.win <span class="sc">==</span> <span class="dv">1</span>, fighter1, fighter2),</span>
-<span id="cb6-213"><a href="#cb6-213" aria-hidden="true" tabindex="-1"></a>    <span class="at">loser =</span> <span class="fu">if_else</span>(fighter1.win <span class="sc">==</span> <span class="dv">0</span>, fighter1, fighter2)) <span class="sc">|&gt;</span></span>
-<span id="cb6-214"><a href="#cb6-214" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(winner, loser) <span class="sc">|&gt;</span></span>
-<span id="cb6-215"><a href="#cb6-215" aria-hidden="true" tabindex="-1"></a>  <span class="fu">graph_from_data_frame</span>(</span>
-<span id="cb6-216"><a href="#cb6-216" aria-hidden="true" tabindex="-1"></a>    <span class="at">directed =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb6-217"><a href="#cb6-217" aria-hidden="true" tabindex="-1"></a>    <span class="at">vertices =</span> fighters)</span>
-<span id="cb6-218"><a href="#cb6-218" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-219"><a href="#cb6-219" aria-hidden="true" tabindex="-1"></a><span class="co"># plot</span></span>
-<span id="cb6-220"><a href="#cb6-220" aria-hidden="true" tabindex="-1"></a>g <span class="sc">|&gt;</span> <span class="fu">plot</span>(</span>
-<span id="cb6-221"><a href="#cb6-221" aria-hidden="true" tabindex="-1"></a>  <span class="at">vertex.size =</span> <span class="dv">5</span>,</span>
-<span id="cb6-222"><a href="#cb6-222" aria-hidden="true" tabindex="-1"></a>  <span class="at">vertex.label.cex =</span> <span class="fl">0.2</span>,</span>
-<span id="cb6-223"><a href="#cb6-223" aria-hidden="true" tabindex="-1"></a>  <span class="at">edge.arrow.size =</span> <span class="fl">0.2</span>,</span>
-<span id="cb6-224"><a href="#cb6-224" aria-hidden="true" tabindex="-1"></a>  <span class="co"># canvas.width = 1000,</span></span>
-<span id="cb6-225"><a href="#cb6-225" aria-hidden="true" tabindex="-1"></a>  <span class="co"># canvas.height = 1000,</span></span>
-<span id="cb6-226"><a href="#cb6-226" aria-hidden="true" tabindex="-1"></a>  <span class="at">layout =</span> coords)</span>
-<span id="cb6-227"><a href="#cb6-227" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-228"><a href="#cb6-228" aria-hidden="true" tabindex="-1"></a><span class="co">#cleanup</span></span>
-<span id="cb6-229"><a href="#cb6-229" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(coords)</span>
-<span id="cb6-230"><a href="#cb6-230" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-231"><a href="#cb6-231" aria-hidden="true" tabindex="-1"></a><span class="co"># old plotting code</span></span>
-<span id="cb6-232"><a href="#cb6-232" aria-hidden="true" tabindex="-1"></a><span class="co"># plot(g, </span></span>
-<span id="cb6-233"><a href="#cb6-233" aria-hidden="true" tabindex="-1"></a><span class="co">#   canvas.width = 1000,</span></span>
-<span id="cb6-234"><a href="#cb6-234" aria-hidden="true" tabindex="-1"></a><span class="co">#   canvas.height = 1000,</span></span>
-<span id="cb6-235"><a href="#cb6-235" aria-hidden="true" tabindex="-1"></a><span class="co">#   layout = layout_with_kk(</span></span>
-<span id="cb6-236"><a href="#cb6-236" aria-hidden="true" tabindex="-1"></a><span class="co">#     g, </span></span>
-<span id="cb6-237"><a href="#cb6-237" aria-hidden="true" tabindex="-1"></a><span class="co">#     dim = 2,</span></span>
-<span id="cb6-238"><a href="#cb6-238" aria-hidden="true" tabindex="-1"></a><span class="co">#     maxiter = 500*vcount(g)))</span></span>
-<span id="cb6-239"><a href="#cb6-239" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-240"><a href="#cb6-240" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-241"><a href="#cb6-241" aria-hidden="true" tabindex="-1"></a>That might be a bit difficult to see, depending on your screen width; here's a tabulation of cluster size (the number of fighters connected to one another by any number of fights):</span>
-<span id="cb6-242"><a href="#cb6-242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-243"><a href="#cb6-243" aria-hidden="true" tabindex="-1"></a><span class="in">```{r connected_table}</span></span>
-<span id="cb6-244"><a href="#cb6-244" aria-hidden="true" tabindex="-1"></a>g.components <span class="ot">&lt;-</span> <span class="fu">components</span>(g, <span class="at">mode =</span> <span class="st">"weak"</span>)</span>
-<span id="cb6-245"><a href="#cb6-245" aria-hidden="true" tabindex="-1"></a>fighters<span class="sc">$</span>connected <span class="ot">&lt;-</span> g.components<span class="sc">$</span>membership</span>
-<span id="cb6-246"><a href="#cb6-246" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-247"><a href="#cb6-247" aria-hidden="true" tabindex="-1"></a>(fighters <span class="ot">&lt;-</span> fighters <span class="sc">|&gt;</span></span>
-<span id="cb6-248"><a href="#cb6-248" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(connected) <span class="sc">|&gt;</span></span>
-<span id="cb6-249"><a href="#cb6-249" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">connected_N =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb6-250"><a href="#cb6-250" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb6-251"><a href="#cb6-251" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(connected_N) <span class="sc">|&gt;</span></span>
-<span id="cb6-252"><a href="#cb6-252" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">fighters =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb6-253"><a href="#cb6-253" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
-<span id="cb6-254"><a href="#cb6-254" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(connected_N, fighters) <span class="sc">|&gt;</span></span>
-<span id="cb6-255"><a href="#cb6-255" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cumulative =</span> <span class="fu">cumsum</span>(fighters))</span>
-<span id="cb6-256"><a href="#cb6-256" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-257"><a href="#cb6-257" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-258"><a href="#cb6-258" aria-hidden="true" tabindex="-1"></a>A good chunk of the fighters are unfortunately connected to only a few, and about a fifth are in clusters of size 2; it does look like there's some good info in the graph structure though.  Let's graph the largest connected group:</span>
-<span id="cb6-259"><a href="#cb6-259" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-260"><a href="#cb6-260" aria-hidden="true" tabindex="-1"></a><span class="in">```{r 92_graph}</span></span>
-<span id="cb6-261"><a href="#cb6-261" aria-hidden="true" tabindex="-1"></a><span class="co">#| column: screen</span></span>
-<span id="cb6-262"><a href="#cb6-262" aria-hidden="true" tabindex="-1"></a><span class="co">#| out-width: 100%</span></span>
-<span id="cb6-263"><a href="#cb6-263" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-264"><a href="#cb6-264" aria-hidden="true" tabindex="-1"></a>g92 <span class="ot">&lt;-</span> UFClefties <span class="sc">|&gt;</span></span>
-<span id="cb6-265"><a href="#cb6-265" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb6-266"><a href="#cb6-266" aria-hidden="true" tabindex="-1"></a>    <span class="at">winner =</span> <span class="fu">if_else</span>(fighter1.win <span class="sc">==</span> <span class="dv">1</span>, fighter1, fighter2),</span>
-<span id="cb6-267"><a href="#cb6-267" aria-hidden="true" tabindex="-1"></a>    <span class="at">loser =</span> <span class="fu">if_else</span>(fighter1.win <span class="sc">==</span> <span class="dv">0</span>, fighter1, fighter2)) <span class="sc">|&gt;</span></span>
-<span id="cb6-268"><a href="#cb6-268" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(winner, loser) <span class="sc">|&gt;</span></span>
-<span id="cb6-269"><a href="#cb6-269" aria-hidden="true" tabindex="-1"></a>  <span class="fu">graph_from_data_frame</span>(</span>
-<span id="cb6-270"><a href="#cb6-270" aria-hidden="true" tabindex="-1"></a>    <span class="at">directed =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb6-271"><a href="#cb6-271" aria-hidden="true" tabindex="-1"></a>    <span class="at">vertices =</span> fighters) <span class="sc">|&gt;</span></span>
-<span id="cb6-272"><a href="#cb6-272" aria-hidden="true" tabindex="-1"></a>  <span class="fu">delete_vertices</span>(fighters[fighters<span class="sc">$</span>connected_N <span class="sc">!=</span> <span class="dv">92</span>,]<span class="sc">$</span>fighter)</span>
-<span id="cb6-273"><a href="#cb6-273" aria-hidden="true" tabindex="-1"></a>g92 <span class="sc">|&gt;</span> <span class="fu">plot</span>(</span>
-<span id="cb6-274"><a href="#cb6-274" aria-hidden="true" tabindex="-1"></a>  <span class="at">vertex.size =</span> <span class="dv">5</span>,</span>
-<span id="cb6-275"><a href="#cb6-275" aria-hidden="true" tabindex="-1"></a>  <span class="at">vertex.label.cex =</span> <span class="fl">0.2</span>,</span>
-<span id="cb6-276"><a href="#cb6-276" aria-hidden="true" tabindex="-1"></a>  <span class="at">edge.arrow.size =</span> <span class="fl">0.2</span>,</span>
-<span id="cb6-277"><a href="#cb6-277" aria-hidden="true" tabindex="-1"></a>  <span class="co"># margin = -0.25,</span></span>
-<span id="cb6-278"><a href="#cb6-278" aria-hidden="true" tabindex="-1"></a>  <span class="co"># asp = 0.5,</span></span>
-<span id="cb6-279"><a href="#cb6-279" aria-hidden="true" tabindex="-1"></a>  <span class="co"># canvas.width = 1000,</span></span>
-<span id="cb6-280"><a href="#cb6-280" aria-hidden="true" tabindex="-1"></a>  <span class="co"># canvas.height = 500,</span></span>
-<span id="cb6-281"><a href="#cb6-281" aria-hidden="true" tabindex="-1"></a>  <span class="at">layout =</span> <span class="fu">layout_with_kk</span>(</span>
-<span id="cb6-282"><a href="#cb6-282" aria-hidden="true" tabindex="-1"></a>    g92, </span>
-<span id="cb6-283"><a href="#cb6-283" aria-hidden="true" tabindex="-1"></a>    <span class="at">dim =</span> <span class="dv">2</span>,</span>
-<span id="cb6-284"><a href="#cb6-284" aria-hidden="true" tabindex="-1"></a>    <span class="at">maxiter =</span> <span class="dv">500</span><span class="sc">*</span><span class="fu">vcount</span>(g)))</span>
-<span id="cb6-285"><a href="#cb6-285" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-286"><a href="#cb6-286" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-287"><a href="#cb6-287" aria-hidden="true" tabindex="-1"></a>There's plenty more exploration to do, and this is left as an exercise for the reader.</span>
-<span id="cb6-288"><a href="#cb6-288" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-289"><a href="#cb6-289" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Model</span></span>
-<span id="cb6-290"><a href="#cb6-290" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-291"><a href="#cb6-291" aria-hidden="true" tabindex="-1"></a><span class="fu">### Dataset</span></span>
-<span id="cb6-292"><a href="#cb6-292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-293"><a href="#cb6-293" aria-hidden="true" tabindex="-1"></a>The dataset includes 244 fights, and a Bradley-Terry model requires a variable for each fight; so here's the code I used to MUNGE the data:</span>
-<span id="cb6-294"><a href="#cb6-294" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-295"><a href="#cb6-295" aria-hidden="true" tabindex="-1"></a><span class="in">```{r data}</span></span>
-<span id="cb6-296"><a href="#cb6-296" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb6-297"><a href="#cb6-297" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-298"><a href="#cb6-298" aria-hidden="true" tabindex="-1"></a><span class="co"># MUNGE the data:</span></span>
-<span id="cb6-299"><a href="#cb6-299" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> UFClefties <span class="sc">|&gt;</span></span>
-<span id="cb6-300"><a href="#cb6-300" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb6-301"><a href="#cb6-301" aria-hidden="true" tabindex="-1"></a>    <span class="at">Y =</span> 1L,                             <span class="co"># response var; brms likes it this way</span></span>
-<span id="cb6-302"><a href="#cb6-302" aria-hidden="true" tabindex="-1"></a>    <span class="co"># diasteriomeric description of the fight; lefty win/lose/0:</span></span>
-<span id="cb6-303"><a href="#cb6-303" aria-hidden="true" tabindex="-1"></a>    <span class="at">L =</span> <span class="fu">as.integer</span>((fighter1.lefty <span class="sc">-</span> fighter2.lefty) <span class="sc">*</span> (<span class="dv">2</span><span class="sc">*</span>fighter1.win <span class="sc">-</span> <span class="dv">1</span>)),</span>
-<span id="cb6-304"><a href="#cb6-304" aria-hidden="true" tabindex="-1"></a>    <span class="at">fight =</span> <span class="fu">row_number</span>(),               <span class="co"># helps pivot_wider keep track of things</span></span>
-<span id="cb6-305"><a href="#cb6-305" aria-hidden="true" tabindex="-1"></a>    <span class="at">winner =</span> <span class="fu">if_else</span>(fighter1.win <span class="sc">==</span><span class="dv">1</span>, fighter1, fighter2),</span>
-<span id="cb6-306"><a href="#cb6-306" aria-hidden="true" tabindex="-1"></a>    <span class="at">loser =</span> <span class="fu">if_else</span>(fighter1.win <span class="sc">==</span><span class="dv">0</span>, fighter1, fighter2)) <span class="sc">|&gt;</span></span>
-<span id="cb6-307"><a href="#cb6-307" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Y, L, fight, winner, loser)    <span class="co"># gets rid of unnecessary vars</span></span>
-<span id="cb6-308"><a href="#cb6-308" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-309"><a href="#cb6-309" aria-hidden="true" tabindex="-1"></a><span class="co"># Prepare the Bradley-Terry vars (MUNGE again):</span></span>
-<span id="cb6-310"><a href="#cb6-310" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb6-311"><a href="#cb6-311" aria-hidden="true" tabindex="-1"></a>  d <span class="sc">|&gt;</span></span>
-<span id="cb6-312"><a href="#cb6-312" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">fighter =</span> winner,</span>
-<span id="cb6-313"><a href="#cb6-313" aria-hidden="true" tabindex="-1"></a>           <span class="at">outcome =</span> 1L) <span class="sc">|&gt;</span></span>
-<span id="cb6-314"><a href="#cb6-314" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Y, L, fight, fighter, outcome),</span>
-<span id="cb6-315"><a href="#cb6-315" aria-hidden="true" tabindex="-1"></a>  d <span class="sc">|&gt;</span></span>
-<span id="cb6-316"><a href="#cb6-316" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">fighter =</span> loser,</span>
-<span id="cb6-317"><a href="#cb6-317" aria-hidden="true" tabindex="-1"></a>           <span class="at">outcome =</span> <span class="sc">-</span>1L) <span class="sc">|&gt;</span></span>
-<span id="cb6-318"><a href="#cb6-318" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Y, L, fight, fighter, outcome)) <span class="sc">|&gt;</span> </span>
-<span id="cb6-319"><a href="#cb6-319" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
-<span id="cb6-320"><a href="#cb6-320" aria-hidden="true" tabindex="-1"></a>    <span class="at">id_cols =</span> <span class="fu">c</span>(Y, L, fight),</span>
-<span id="cb6-321"><a href="#cb6-321" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> fighter,</span>
-<span id="cb6-322"><a href="#cb6-322" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_prefix =</span> <span class="st">"f"</span>,</span>
-<span id="cb6-323"><a href="#cb6-323" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_sort =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb6-324"><a href="#cb6-324" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> outcome,</span>
-<span id="cb6-325"><a href="#cb6-325" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_fill =</span> 0L) <span class="sc">|&gt;</span></span>
-<span id="cb6-326"><a href="#cb6-326" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>fight)</span>
-<span id="cb6-327"><a href="#cb6-327" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-328"><a href="#cb6-328" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-329"><a href="#cb6-329" aria-hidden="true" tabindex="-1"></a>Here's a peek of a small chunk of the fully-MUNGE-ed dataset:</span>
-<span id="cb6-330"><a href="#cb6-330" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-331"><a href="#cb6-331" aria-hidden="true" tabindex="-1"></a><span class="in">```{r head_data}</span></span>
-<span id="cb6-332"><a href="#cb6-332" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb6-333"><a href="#cb6-333" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-334"><a href="#cb6-334" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(d[<span class="dv">56</span><span class="sc">:</span><span class="dv">65</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>], <span class="at">n =</span> <span class="dv">10</span>)</span>
-<span id="cb6-335"><a href="#cb6-335" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-336"><a href="#cb6-336" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-337"><a href="#cb6-337" aria-hidden="true" tabindex="-1"></a><span class="fu">### brms Models</span></span>
-<span id="cb6-338"><a href="#cb6-338" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-339"><a href="#cb6-339" aria-hidden="true" tabindex="-1"></a>To start off with, here's the model from the paper and the solution set:</span>
-<span id="cb6-340"><a href="#cb6-340" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-341"><a href="#cb6-341" aria-hidden="true" tabindex="-1"></a><span class="in">```{r model}</span></span>
-<span id="cb6-342"><a href="#cb6-342" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb6-343"><a href="#cb6-343" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: false</span></span>
-<span id="cb6-344"><a href="#cb6-344" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-345"><a href="#cb6-345" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
-<span id="cb6-346"><a href="#cb6-346" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> <span class="fu">bf</span>(Y <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> L, <span class="at">family =</span> bernoulli),</span>
-<span id="cb6-347"><a href="#cb6-347" aria-hidden="true" tabindex="-1"></a>  <span class="at">prior =</span> <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> b),</span>
-<span id="cb6-348"><a href="#cb6-348" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> d, </span>
-<span id="cb6-349"><a href="#cb6-349" aria-hidden="true" tabindex="-1"></a>  <span class="at">chains =</span> chains,</span>
-<span id="cb6-350"><a href="#cb6-350" aria-hidden="true" tabindex="-1"></a>  <span class="at">iter =</span> iter,</span>
-<span id="cb6-351"><a href="#cb6-351" aria-hidden="true" tabindex="-1"></a>  <span class="at">warmup =</span> warmup,</span>
-<span id="cb6-352"><a href="#cb6-352" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> (seed <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(<span class="fu">Sys.time</span>())))</span>
-<span id="cb6-353"><a href="#cb6-353" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-354"><a href="#cb6-354" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-355"><a href="#cb6-355" aria-hidden="true" tabindex="-1"></a>The seed used is <span class="in">`{r} print(seed)`</span>.</span>
-<span id="cb6-356"><a href="#cb6-356" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-357"><a href="#cb6-357" aria-hidden="true" tabindex="-1"></a>To specify the Bradley-Terrey model you might worry that a large formula would be needed; fortunately brms follows the standard <span class="co">[</span><span class="ot">Wilkinson formula</span><span class="co">](https://academic.oup.com/jrsssc/article/22/3/392/6882728?login=false)</span> syntax (e.g. that of the R stats package, nlme, the Bayesian python package bambi, etc), so instead of writing out all of the variables in the formula we can specify the formula with <span class="in">`bf(Y ~ 0 + ., family = bernoulli)`</span>, where <span class="in">`.`</span> denotes the sum of all variables (other than the response variable, <span class="in">`Y`</span>); here <span class="in">`0`</span> tells to brms not to automatically add an intercept to the model.</span>
-<span id="cb6-358"><a href="#cb6-358" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-359"><a href="#cb6-359" aria-hidden="true" tabindex="-1"></a><span class="in">```{r BT_model}</span></span>
-<span id="cb6-360"><a href="#cb6-360" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb6-361"><a href="#cb6-361" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: false</span></span>
-<span id="cb6-362"><a href="#cb6-362" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-363"><a href="#cb6-363" aria-hidden="true" tabindex="-1"></a>BT_model <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
-<span id="cb6-364"><a href="#cb6-364" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> <span class="fu">bf</span>(Y <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> ., <span class="at">family =</span> bernoulli),</span>
-<span id="cb6-365"><a href="#cb6-365" aria-hidden="true" tabindex="-1"></a>  <span class="at">prior =</span> <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> b),</span>
-<span id="cb6-366"><a href="#cb6-366" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> d, </span>
-<span id="cb6-367"><a href="#cb6-367" aria-hidden="true" tabindex="-1"></a>  <span class="at">chains =</span> chains,</span>
-<span id="cb6-368"><a href="#cb6-368" aria-hidden="true" tabindex="-1"></a>  <span class="at">iter =</span> iter,</span>
-<span id="cb6-369"><a href="#cb6-369" aria-hidden="true" tabindex="-1"></a>  <span class="at">warmup =</span> warmup,</span>
-<span id="cb6-370"><a href="#cb6-370" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> (seed <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(<span class="fu">Sys.time</span>())))</span>
-<span id="cb6-371"><a href="#cb6-371" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-372"><a href="#cb6-372" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-373"><a href="#cb6-373" aria-hidden="true" tabindex="-1"></a>The seed used for this one is <span class="in">`{r} print(seed)`</span>.  For fun, let's re-run the model using only the largest cluster:</span>
-<span id="cb6-374"><a href="#cb6-374" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-375"><a href="#cb6-375" aria-hidden="true" tabindex="-1"></a><span class="in">```{r BT92_model}</span></span>
-<span id="cb6-376"><a href="#cb6-376" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb6-377"><a href="#cb6-377" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: false</span></span>
-<span id="cb6-378"><a href="#cb6-378" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-379"><a href="#cb6-379" aria-hidden="true" tabindex="-1"></a>d<span class="fl">.92</span> <span class="ot">&lt;-</span> d[UFClefties<span class="sc">$</span>fighter1 <span class="sc">%in%</span> (<span class="fu">as.integer</span>(fighters<span class="sc">$</span>connected_N <span class="sc">==</span> <span class="dv">92</span>) <span class="sc">*</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">244</span>),]</span>
-<span id="cb6-380"><a href="#cb6-380" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-381"><a href="#cb6-381" aria-hidden="true" tabindex="-1"></a>BT92_model <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
-<span id="cb6-382"><a href="#cb6-382" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> <span class="fu">bf</span>(Y <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> ., <span class="at">family =</span> bernoulli),</span>
-<span id="cb6-383"><a href="#cb6-383" aria-hidden="true" tabindex="-1"></a>  <span class="at">prior =</span> <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> b),</span>
-<span id="cb6-384"><a href="#cb6-384" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> d<span class="fl">.92</span>, </span>
-<span id="cb6-385"><a href="#cb6-385" aria-hidden="true" tabindex="-1"></a>  <span class="at">chains =</span> chains,</span>
-<span id="cb6-386"><a href="#cb6-386" aria-hidden="true" tabindex="-1"></a>  <span class="at">iter =</span> iter,</span>
-<span id="cb6-387"><a href="#cb6-387" aria-hidden="true" tabindex="-1"></a>  <span class="at">warmup =</span> warmup,</span>
-<span id="cb6-388"><a href="#cb6-388" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> (seed <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(<span class="fu">Sys.time</span>())))</span>
-<span id="cb6-389"><a href="#cb6-389" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-390"><a href="#cb6-390" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-391"><a href="#cb6-391" aria-hidden="true" tabindex="-1"></a>The seed used is <span class="in">`{r} print(seed)`</span>.</span>
-<span id="cb6-392"><a href="#cb6-392" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-393"><a href="#cb6-393" aria-hidden="true" tabindex="-1"></a>Trace and trank plots look fine for these models; they will not be reproduced here.</span>
-<span id="cb6-394"><a href="#cb6-394" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-395"><a href="#cb6-395" aria-hidden="true" tabindex="-1"></a><span class="fu">## Results</span></span>
-<span id="cb6-396"><a href="#cb6-396" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-397"><a href="#cb6-397" aria-hidden="true" tabindex="-1"></a><span class="fu">### Posterior probabilities</span></span>
-<span id="cb6-398"><a href="#cb6-398" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-399"><a href="#cb6-399" aria-hidden="true" tabindex="-1"></a>Here's a tabulation of the the posterior probabilities with 89% HDI:</span>
-<span id="cb6-400"><a href="#cb6-400" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-401"><a href="#cb6-401" aria-hidden="true" tabindex="-1"></a><span class="in">```{r HDPI_table}</span></span>
-<span id="cb6-402"><a href="#cb6-402" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb6-403"><a href="#cb6-403" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-404"><a href="#cb6-404" aria-hidden="true" tabindex="-1"></a>(draws <span class="ot">&lt;-</span> (draws.wide <span class="ot">&lt;-</span> <span class="fu">cbind</span>(</span>
-<span id="cb6-405"><a href="#cb6-405" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Prior = rnorm(n = chains*(iter-warmup), mean = 0L, sd = 1L),</span></span>
-<span id="cb6-406"><a href="#cb6-406" aria-hidden="true" tabindex="-1"></a>  model <span class="sc">|&gt;</span> </span>
-<span id="cb6-407"><a href="#cb6-407" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_draws_df</span>() <span class="sc">|&gt;</span></span>
-<span id="cb6-408"><a href="#cb6-408" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(b_L) <span class="sc">|&gt;</span></span>
-<span id="cb6-409"><a href="#cb6-409" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rename</span>(<span class="at">Base_Model =</span> b_L),</span>
-<span id="cb6-410"><a href="#cb6-410" aria-hidden="true" tabindex="-1"></a>  BT_model <span class="sc">|&gt;</span> </span>
-<span id="cb6-411"><a href="#cb6-411" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_draws_df</span>() <span class="sc">|&gt;</span></span>
-<span id="cb6-412"><a href="#cb6-412" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(b_L) <span class="sc">|&gt;</span></span>
-<span id="cb6-413"><a href="#cb6-413" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rename</span>(<span class="at">BT_Model =</span> b_L),</span>
-<span id="cb6-414"><a href="#cb6-414" aria-hidden="true" tabindex="-1"></a>  BT92_model <span class="sc">|&gt;</span> </span>
-<span id="cb6-415"><a href="#cb6-415" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_draws_df</span>() <span class="sc">|&gt;</span></span>
-<span id="cb6-416"><a href="#cb6-416" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(b_L) <span class="sc">|&gt;</span></span>
-<span id="cb6-417"><a href="#cb6-417" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rename</span>(<span class="at">BT92_Model =</span> b_L))) <span class="sc">|&gt;</span></span>
-<span id="cb6-418"><a href="#cb6-418" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">everything</span>()) <span class="sc">|&gt;</span>  <span class="co"># pivots all columns</span></span>
-<span id="cb6-419"><a href="#cb6-419" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Model =</span> name)) <span class="sc">|&gt;</span></span>
-<span id="cb6-420"><a href="#cb6-420" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Model) <span class="sc">|&gt;</span></span>
-<span id="cb6-421"><a href="#cb6-421" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mean_hdi</span>(value, <span class="at">.width =</span> .<span class="dv">89</span>)</span>
-<span id="cb6-422"><a href="#cb6-422" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-423"><a href="#cb6-423" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-424"><a href="#cb6-424" aria-hidden="true" tabindex="-1"></a>And the posterior predictive plot for the lefty advantage:</span>
-<span id="cb6-425"><a href="#cb6-425" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-426"><a href="#cb6-426" aria-hidden="true" tabindex="-1"></a><span class="in">```{r posterior_pred_plot}</span></span>
-<span id="cb6-427"><a href="#cb6-427" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb6-428"><a href="#cb6-428" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-429"><a href="#cb6-429" aria-hidden="true" tabindex="-1"></a>draws <span class="sc">|&gt;</span></span>
-<span id="cb6-430"><a href="#cb6-430" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> value, <span class="at">fill =</span> Model)) <span class="sc">+</span></span>
-<span id="cb6-431"><a href="#cb6-431" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_function</span>(</span>
-<span id="cb6-432"><a href="#cb6-432" aria-hidden="true" tabindex="-1"></a>    <span class="at">fun =</span> dnorm, </span>
-<span id="cb6-433"><a href="#cb6-433" aria-hidden="true" tabindex="-1"></a>    <span class="at">geom =</span> <span class="st">"area"</span>,</span>
-<span id="cb6-434"><a href="#cb6-434" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"black"</span>, </span>
-<span id="cb6-435"><a href="#cb6-435" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="fu">rgb</span>(<span class="fl">0.9</span>, <span class="fl">0.5</span>, <span class="dv">0</span>, <span class="fl">0.1</span>),</span>
-<span id="cb6-436"><a href="#cb6-436" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
-<span id="cb6-437"><a href="#cb6-437" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(</span>
-<span id="cb6-438"><a href="#cb6-438" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.5</span>,</span>
-<span id="cb6-439"><a href="#cb6-439" aria-hidden="true" tabindex="-1"></a>    <span class="at">from =</span> <span class="sc">-</span><span class="fl">2.1</span>,</span>
-<span id="cb6-440"><a href="#cb6-440" aria-hidden="true" tabindex="-1"></a>    <span class="at">to =</span> <span class="fl">2.1</span>,</span>
-<span id="cb6-441"><a href="#cb6-441" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="dv">2048</span>) <span class="sc">+</span></span>
-<span id="cb6-442"><a href="#cb6-442" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Lefty advantage"</span>) <span class="sc">+</span></span>
-<span id="cb6-443"><a href="#cb6-443" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Probability Density"</span>) <span class="sc">+</span></span>
-<span id="cb6-444"><a href="#cb6-444" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(                                            <span class="co"># add x &amp; y lines</span></span>
-<span id="cb6-445"><a href="#cb6-445" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid  =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb6-446"><a href="#cb6-446" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.background =</span> <span class="fu">element_blank</span>(),             <span class="co"># remove gray background</span></span>
-<span id="cb6-447"><a href="#cb6-447" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.line.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">'black'</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>, <span class="at">linetype=</span><span class="st">'solid'</span>),</span>
-<span id="cb6-448"><a href="#cb6-448" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.line.y =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">'black'</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>, <span class="at">linetype=</span><span class="st">'solid'</span>),</span>
-<span id="cb6-449"><a href="#cb6-449" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb6-450"><a href="#cb6-450" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.5</span>, <span class="fl">1.5</span>), <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb6-451"><a href="#cb6-451" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">1.7</span>), <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))</span>
-<span id="cb6-452"><a href="#cb6-452" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-453"><a href="#cb6-453" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-454"><a href="#cb6-454" aria-hidden="true" tabindex="-1"></a>Plot key:</span>
-<span id="cb6-455"><a href="#cb6-455" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-456"><a href="#cb6-456" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>Yellow: normal prior</span>
-<span id="cb6-457"><a href="#cb6-457" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>Red: base model</span>
-<span id="cb6-458"><a href="#cb6-458" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>Green: full Bradley-Terrey model (all data points)</span>
-<span id="cb6-459"><a href="#cb6-459" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>Blue: sub-Bradley-Terrey model (including only the 92 inter-connected fighters)</span>
-<span id="cb6-460"><a href="#cb6-460" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb6-461"><a href="#cb6-461" aria-hidden="true" tabindex="-1"></a>Interestingly, the looking at only the 92 inter-connected fighters deviates furthest from the assumptions baked into the prior.</span>
-<span id="cb6-462"><a href="#cb6-462" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-463"><a href="#cb6-463" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conclusion</span></span>
-<span id="cb6-464"><a href="#cb6-464" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-465"><a href="#cb6-465" aria-hidden="true" tabindex="-1"></a>So in this case adding information on fighter ability didn't affect the posterior distribution much, and probably didn't contain much information given the small size of the clusters, and low average number of fights for each fighter, but it was an interesting exercise.   Some parting thoughts:</span>
-<span id="cb6-466"><a href="#cb6-466" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-467"><a href="#cb6-467" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>The exercise illustrated the limited <span class="co">[</span><span class="ot">expressive power</span><span class="co">]</span>(https://en.wikipedia.org/wiki/Expressive_power_(computer_science)) of brms relative to Stan and the Rethinking package; models will be difficult to express in brms unless they can be coerced into a design matrix, as <span class="co">[</span><span class="ot">Wilkinson notation</span><span class="co">](https://academic.oup.com/jrsssc/article/22/3/392/6882728?login=false)</span> fundamentally is about converting a formula to a design matrix.</span>
-<span id="cb6-468"><a href="#cb6-468" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>Perhaps the "footedness" of the fighters might provide more info?  This would complicate the diasteriomeric relations in each match, as each would then be a relation between four chiral centers, but perhaps the strikes from the lower body are more important than those from the upper body.</span>
-<span id="cb6-469"><a href="#cb6-469" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-470"><a href="#cb6-470" aria-hidden="true" tabindex="-1"></a><span class="fu">## Version History</span></span>
-<span id="cb6-471"><a href="#cb6-471" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-472"><a href="#cb6-472" aria-hidden="true" tabindex="-1"></a>Updated 2025-02-10:</span>
-<span id="cb6-473"><a href="#cb6-473" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-474"><a href="#cb6-474" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>improved graphs</span>
-<span id="cb6-475"><a href="#cb6-475" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>added the 92-fighter Bradley-Terrey model</span>
-<span id="cb6-476"><a href="#cb6-476" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>added license info</span>
-<span id="cb6-477"><a href="#cb6-477" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>increased sample draws</span>
-<span id="cb6-478"><a href="#cb6-478" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>expanded conclusions</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div></div></div></div></div>
+</script>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
     <div class="nav-footer-left">

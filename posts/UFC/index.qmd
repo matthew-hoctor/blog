@@ -8,21 +8,7 @@ categories:
   - brms
   - Bayesian statistics
 draft: false
-
-toc: true
-toc-depth: 4
-toc-expand: true
-toc-location: left
-toc-title: Contents
-  
-code-fold: show
-code-overflow: wrap
-code-tools: true
-code-link: true
-
 freeze: false
-execute: 
-  echo: false
 
 editor: source
 ---
@@ -104,6 +90,8 @@ rm(cores)
 ```
 
 ```{r UFClefties}
+#| include: false
+
 # load data from Statistical Rethinking course package:
 data("UFClefties", package = "rethinking")
 # write .csv file:
@@ -111,6 +99,8 @@ write.csv(UFClefties, file = "UFClefties.csv")
 ```
 
 ```{r fighters}
+#| include: false
+
 fighters <- rbind(
   UFClefties |> 
     select(fight, fighter1, fighter1.lefty, fighter1.win) |> 
@@ -147,24 +137,26 @@ dagify(
   exposure = "L",
   outcome = "W",
   latent = "A",
-  labels = c(
-    "W" = "Win",
-    "A" = "Fighter\nAbility",
-    "L" = "Left-handed-ness",
-    "Q" = "UFC\nQualification"),
   coords = list(
     x = c(L = 0, W = 1, A = 1,  Q = 0),
     y = c(L = 0, W = 0, A = 1,  Q = 1))) |>
-  ggdag_status(
-    text = TRUE,
-    use_labels = "label") + 
+  ggdag_status() + 
   theme_dag_gray_grid(
     panel.grid  = element_blank(),
     panel.background = element_blank()) +
   labs(title='', col='Status')
 ```
 
-However we are given some limited information on fighter abilities, since some of the fighters fight in multiple matches.  We can include this information with a Bradley-Terrey model:
+Graph key:
+
+ - L: left-handedness, the exposure
+ - A: ability, unobserved
+ - W: winning a UFC match, the outcome
+ - Q: qualification for UFC; this is required for winning a UFC match
+
+Many readers will notice that by considering only fighters who have qualified for UFC, Q, we are here [conditioning on a collider](https://pmc.ncbi.nlm.nih.gov/articles/PMC2846442/).
+
+Although the solution set (and the paper) treat the abilities of each fighter as purely unobserved, we are actually given some limited information on fighter abilities: since some of the fighters fight in multiple matches, we can include this information in the model with a Bradley-Terrey model:
 
 ## Bradley-Terry models
 
@@ -185,7 +177,7 @@ It seems that this class of models describes the UFClefties question.  Andy Miln
 
 $$\operatorname{logit}(\Pr(i > j)) = L + \beta_i - \beta_j$$
 
-Where $L$ denotes the 'lefty advantage' and encodes the diasteriomeric relation of the match; $L$ takes the following values:
+Where $L$ denotes the 'lefty advantage' and encodes the [diasteriomeric](https://en.wikipedia.org/wiki/Diastereomer) relation of the match; $L$ takes the following values:
 
  - 0 when a righty fights a righty or a lefty fights a lefty
  - 1 when a lefty wins over a righty
@@ -200,6 +192,7 @@ Let's graph the fights in the dataset with each fighter as a vertex, and each fi
 ```{r fight_graph}
 #| column: screen
 #| out-width: 100%
+#| lightbox: true             # https://quarto.org/docs/output-formats/html-lightbox-figures.html
 
 coords <- read.csv("coords.csv") |>
 # coords <- read.csv("posts/UFC/coords.csv") |>
@@ -221,21 +214,10 @@ g |> plot(
   vertex.size = 5,
   vertex.label.cex = 0.2,
   edge.arrow.size = 0.2,
-  # canvas.width = 1000,
-  # canvas.height = 1000,
   layout = coords)
 
 #cleanup
 rm(coords)
-
-# old plotting code
-# plot(g, 
-#   canvas.width = 1000,
-#   canvas.height = 1000,
-#   layout = layout_with_kk(
-#     g, 
-#     dim = 2,
-#     maxiter = 500*vcount(g)))
 ```
 
 That might be a bit difficult to see, depending on your screen width; here's a tabulation of cluster size (the number of fighters connected to one another by any number of fights):
@@ -260,6 +242,7 @@ A good chunk of the fighters are unfortunately connected to only a few, and abou
 ```{r 92_graph}
 #| column: screen
 #| out-width: 100%
+#| lightbox: true             # https://quarto.org/docs/output-formats/html-lightbox-figures.html
 
 g92 <- UFClefties |>
   mutate(
@@ -293,7 +276,7 @@ There's plenty more exploration to do, and this is left as an exercise for the r
 The dataset includes 244 fights, and a Bradley-Terry model requires a variable for each fight; so here's the code I used to MUNGE the data:
 
 ```{r data}
-#| echo: true
+#| code-fold: show
 
 # MUNGE the data:
 d <- UFClefties |>
@@ -329,8 +312,7 @@ d <- rbind(
 Here's a peek of a small chunk of the fully-MUNGE-ed dataset:
 
 ```{r head_data}
-#| echo: true
-
+#| code-fold: show
 head(d[56:65,1:10], n = 10)
 ```
 
@@ -339,7 +321,7 @@ head(d[56:65,1:10], n = 10)
 To start off with, here's the model from the paper and the solution set:
 
 ```{r model}
-#| echo: true
+#| code-fold: show
 #| output: false
 
 model <- brm(
@@ -352,12 +334,12 @@ model <- brm(
   seed = (seed <- as.integer(Sys.time())))
 ```
 
-The seed used is `{r} print(seed)`.
+The seed used is `r seed`.
 
 To specify the Bradley-Terrey model you might worry that a large formula would be needed; fortunately brms follows the standard [Wilkinson formula](https://academic.oup.com/jrsssc/article/22/3/392/6882728?login=false) syntax (e.g. that of the R stats package, nlme, the Bayesian python package bambi, etc), so instead of writing out all of the variables in the formula we can specify the formula with `bf(Y ~ 0 + ., family = bernoulli)`, where `.` denotes the sum of all variables (other than the response variable, `Y`); here `0` tells to brms not to automatically add an intercept to the model.
 
 ```{r BT_model}
-#| echo: true
+#| code-fold: show
 #| output: false
 
 BT_model <- brm(
@@ -370,10 +352,10 @@ BT_model <- brm(
   seed = (seed <- as.integer(Sys.time())))
 ```
 
-The seed used for this one is `{r} print(seed)`.  For fun, let's re-run the model using only the largest cluster:
+The seed used for this one is `r seed`.  For fun, let's re-run the model using only the largest cluster:
 
 ```{r BT92_model}
-#| echo: true
+#| code-fold: show
 #| output: false
 
 d.92 <- d[UFClefties$fighter1 %in% (as.integer(fighters$connected_N == 92) * 1:244),]
@@ -388,7 +370,7 @@ BT92_model <- brm(
   seed = (seed <- as.integer(Sys.time())))
 ```
 
-The seed used is `{r} print(seed)`.
+The seed used is `r seed`.
 
 Trace and trank plots look fine for these models; they will not be reproduced here.
 
@@ -458,7 +440,7 @@ Plot key:
  - Green: full Bradley-Terrey model (all data points)
  - Blue: sub-Bradley-Terrey model (including only the 92 inter-connected fighters)
  
-Interestingly, the looking at only the 92 inter-connected fighters deviates furthest from the assumptions baked into the prior.
+Interestingly, looking at only the 92 inter-connected fighters deviates furthest from the assumptions baked into the prior.
 
 ## Conclusion
 
@@ -468,6 +450,13 @@ So in this case adding information on fighter ability didn't affect the posterio
  - Perhaps the "footedness" of the fighters might provide more info?  This would complicate the diasteriomeric relations in each match, as each would then be a relation between four chiral centers, but perhaps the strikes from the lower body are more important than those from the upper body.
 
 ## Version History
+
+Updated 2025-02-14:
+
+ - inline code
+ - cleanup dag
+ - code folding
+ - add [lightbox](https://quarto.org/docs/output-formats/html-lightbox-figures.html) to fight graphs
 
 Updated 2025-02-10:
 
