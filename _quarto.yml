@@ -6,6 +6,8 @@ project:
 website:
   title: "Divergent Cognitions"
   site-url: https://matthew-hoctor.github.io/blog/
+  repo-url: https://github.com/matthew-hoctor/blog    # https://quarto.org/docs/websites/website-navigation.html#github-links
+  repo-actions: [source, issue]
   reader-mode: true
   navbar:
     background: primary
@@ -22,9 +24,19 @@ website:
         icon: https://upload.wikimedia.org/wikipedia/commons/e/e5/CC_BY-SA_icon.svg
 format:
   html:
-    df-print: paged       # https://quarto.org/docs/get-started/computations/rstudio.html#data-frames
+    df-print: paged                                   # https://quarto.org/docs/get-started/computations/rstudio.html#data-frames
     theme: simplex
     css: styles.css
+    toc: true                                         # https://quarto.org/docs/reference/formats/html.html#table-of-contents
+    toc-depth: 4
+    toc-expand: true
+    toc-location: left
+    toc-title: Contents
+    code-fold: true                                   # https://quarto.org/docs/output-formats/html-code.html#folding-code
+    code-overflow: wrap                               # https://quarto.org/docs/output-formats/html-code.html#code-overflow
+    code-tools:                                       # https://quarto.org/docs/output-formats/html-code.html#code-tools
+      source: repo
+    code-link: true                                   # https://quarto.org/docs/output-formats/html-code.html#code-linking
 
 editor: source
 
