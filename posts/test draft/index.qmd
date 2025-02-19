@@ -3,23 +3,14 @@ title: "Test draft"
 author: "Matthew Hoctor"
 date: "2025-02-02"
 date-modified: last-modified
+license: "CC BY-SA 4.0"
 categories: 
   - draft
 
-toc: true
-toc-depth: 4
-toc-expand: true
-toc-location: left
-toc-title: Contents
-  
-code-fold: show
-code-overflow: wrap
-code-tools: true
-code-link: true
+draft: true
+freeze: false
 
 editor: source
-
-draft: true
 ---
 
 ## A heading
