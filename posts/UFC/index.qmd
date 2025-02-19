@@ -8,7 +8,7 @@ categories:
   - brms
   - Bayesian statistics
 draft: false
-freeze: false
+freeze: true
 
 editor: source
 ---
