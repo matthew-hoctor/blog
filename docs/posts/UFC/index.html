@@ -161,7 +161,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Modified</div>
       <div class="quarto-title-meta-contents">
-        <p class="date-modified">February 14, 2025</p>
+        <p class="date-modified">February 19, 2025</p>
       </div>
     </div>
       
@@ -391,7 +391,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span>  seed <span class="op">=</span> <span class="op">(</span><span class="va">seed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>The seed used is 1739585912.</p>
+<p>The seed used is 1740372201.</p>
 <p>To specify the Bradley-Terrey model you might worry that a large formula would be needed; fortunately brms follows the standard <a href="https://academic.oup.com/jrsssc/article/22/3/392/6882728?login=false">Wilkinson formula</a> syntax (e.g.&nbsp;that of the R stats package, nlme, the Bayesian python package bambi, etc), so instead of writing out all of the variables in the formula we can specify the formula with <code>bf(Y ~ 0 + ., family = bernoulli)</code>, where <code>.</code> denotes the sum of all variables (other than the response variable, <code>Y</code>); here <code>0</code> tells to brms not to automatically add an intercept to the model.</p>
 <div class="cell">
 <details open=""><summary>Code</summary><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">BT_model</span> <span class="op">&lt;-</span> <span class="fu">brm</span><span class="op">(</span></span>
@@ -404,7 +404,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span>  seed <span class="op">=</span> <span class="op">(</span><span class="va">seed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>The seed used for this one is 1739585981. For fun, let’s re-run the model using only the largest cluster:</p>
+<p>The seed used for this one is 1740372274. For fun, let’s re-run the model using only the largest cluster:</p>
 <div class="cell">
 <details open=""><summary>Code</summary><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">d.92</span> <span class="op">&lt;-</span> <span class="va">d</span><span class="op">[</span><span class="va">UFClefties</span><span class="op">$</span><span class="va">fighter1</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="va">fighters</span><span class="op">$</span><span class="va">connected_N</span> <span class="op">==</span> <span class="fl">92</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span><span class="op">:</span><span class="fl">244</span><span class="op">)</span>,<span class="op">]</span></span>
 <span></span>
@@ -418,7 +418,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span>  seed <span class="op">=</span> <span class="op">(</span><span class="va">seed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.time</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>The seed used is 1739586149.</p>
+<p>The seed used is 1740372443.</p>
 <p>Trace and trank plots look fine for these models; they will not be reproduced here.</p>
 </section></section><section id="results" class="level2"><h2 class="anchored" data-anchor-id="results">Results</h2>
 <section id="posterior-probabilities" class="level3"><h3 class="anchored" data-anchor-id="posterior-probabilities">Posterior probabilities</h3>
@@ -446,7 +446,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
-{"columns":[{"label":["Model"],"name":[1],"type":["chr"],"align":["left"]},{"label":["value"],"name":[2],"type":["dbl"],"align":["right"]},{"label":[".lower"],"name":[3],"type":["dbl"],"align":["right"]},{"label":[".upper"],"name":[4],"type":["dbl"],"align":["right"]},{"label":[".width"],"name":[5],"type":["dbl"],"align":["right"]},{"label":[".point"],"name":[6],"type":["chr"],"align":["left"]},{"label":[".interval"],"name":[7],"type":["chr"],"align":["left"]}],"data":[{"1":"Base_Model","2":"-0.0003375623","3":"-0.3759727","4":"0.3769857","5":"0.89","6":"mean","7":"hdi"},{"1":"BT_Model","2":"0.0468183657","3":"-0.4778453","4":"0.5697148","5":"0.89","6":"mean","7":"hdi"},{"1":"BT92_Model","2":"0.2946370236","3":"-0.3901831","4":"0.9856854","5":"0.89","6":"mean","7":"hdi"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["Model"],"name":[1],"type":["chr"],"align":["left"]},{"label":["value"],"name":[2],"type":["dbl"],"align":["right"]},{"label":[".lower"],"name":[3],"type":["dbl"],"align":["right"]},{"label":[".upper"],"name":[4],"type":["dbl"],"align":["right"]},{"label":[".width"],"name":[5],"type":["dbl"],"align":["right"]},{"label":[".point"],"name":[6],"type":["chr"],"align":["left"]},{"label":[".interval"],"name":[7],"type":["chr"],"align":["left"]}],"data":[{"1":"Base_Model","2":"0.0008226888","3":"-0.3769059","4":"0.3807918","5":"0.89","6":"mean","7":"hdi"},{"1":"BT_Model","2":"0.0462731343","3":"-0.4786591","4":"0.5702799","5":"0.89","6":"mean","7":"hdi"},{"1":"BT92_Model","2":"0.2939471798","3":"-0.4041537","4":"0.9747157","5":"0.89","6":"mean","7":"hdi"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 </div>

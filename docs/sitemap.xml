@@ -2,10 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://matthew-hoctor.github.io/blog/index.html</loc>
-    <lastmod>2025-02-15T02:24:50.881Z</lastmod>
+    <lastmod>2025-02-26T04:48:29.244Z</lastmod>
   </url>
   <url>
     <loc>https://matthew-hoctor.github.io/blog/posts/UFC/index.html</loc>
-    <lastmod>2025-02-15T02:24:48.797Z</lastmod>
+    <lastmod>2025-02-26T04:49:55.652Z</lastmod>
+  </url>
+  <url>
+    <loc>https://matthew-hoctor.github.io/blog/posts/pyMC setup/index.html</loc>
+    <lastmod>2025-02-26T04:48:28.752Z</lastmod>
   </url>
 </urlset>

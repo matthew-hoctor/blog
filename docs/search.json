@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Index",
     "section": "",
-    "text": "Bradley-Terry models in brms\n\n\n\n\n\n\n\nbrms\n\n\nBayesian statistics\n\n\n\n\n\n\n\n\n\n\n\nFeb 2, 2025\n\n\nMatthew Hoctor\n\n\n\n\n\n\n  \n\n\n\n\nTest Post\n\n\n\n\n\n\n\ntest\n\n\n\n\n\n\n\n\n\n\n\nFeb 2, 2025\n\n\nMatthew Hoctor\n\n\n\n\n\n\nNo matching items"
+    "text": "Setting up RStudio for Python & pyMC\n\n\n\n\n\n\n\npyMC\n\n\npython\n\n\nRStudio\n\n\nsetup\n\n\nBayesian statistics\n\n\n\n\n\n\n\n\n\n\n\nFeb 2, 2025\n\n\nMatthew Hoctor\n\n\n\n\n\n\n  \n\n\n\n\nBradley-Terry models in brms\n\n\n\n\n\n\n\nbrms\n\n\nBayesian statistics\n\n\n\n\n\n\n\n\n\n\n\nFeb 2, 2025\n\n\nMatthew Hoctor\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
@@ -23,20 +23,6 @@
   {
     "objectID": "posts/welcome/index.html#a-heading",
     "href": "posts/welcome/index.html#a-heading",
-    "title": "Test Post",
-    "section": "",
-    "text": "This is the first post in a Quarto blog. Welcome!"
-  },
-  {
-    "objectID": "posts/test post/index.html",
-    "href": "posts/test post/index.html",
-    "title": "Test Post",
-    "section": "",
-    "text": "This is the first post in a Quarto blog. Welcome!"
-  },
-  {
-    "objectID": "posts/test post/index.html#a-heading",
-    "href": "posts/test post/index.html#a-heading",
     "title": "Test Post",
     "section": "",
     "text": "This is the first post in a Quarto blog. Welcome!"
@@ -74,7 +60,7 @@
     "href": "posts/UFC/index.html#the-model",
     "title": "Bradley-Terry models in brms",
     "section": "The Model",
-    "text": "The Model\nDataset\nThe dataset includes 244 fights, and a Bradley-Terry model requires a variable for each fight; so here’s the code I used to MUNGE the data:\n\nCode# MUNGE the data:\nd &lt;- UFClefties |&gt;\n  mutate(\n    Y = 1L,                             # response var; brms likes it this way\n    # diasteriomeric description of the fight; lefty win/lose/0:\n    L = as.integer((fighter1.lefty - fighter2.lefty) * (2*fighter1.win - 1)),\n    fight = row_number(),               # helps pivot_wider keep track of things\n    winner = if_else(fighter1.win ==1, fighter1, fighter2),\n    loser = if_else(fighter1.win ==0, fighter1, fighter2)) |&gt;\n  select(Y, L, fight, winner, loser)    # gets rid of unnecessary vars\n\n# Prepare the Bradley-Terry vars (MUNGE again):\nd &lt;- rbind(\n  d |&gt;\n    mutate(fighter = winner,\n           outcome = 1L) |&gt;\n    select(Y, L, fight, fighter, outcome),\n  d |&gt;\n    mutate(fighter = loser,\n           outcome = -1L) |&gt;\n    select(Y, L, fight, fighter, outcome)) |&gt; \n  pivot_wider(\n    id_cols = c(Y, L, fight),\n    names_from = fighter,\n    names_prefix = \"f\",\n    names_sort = TRUE,\n    values_from = outcome,\n    values_fill = 0L) |&gt;\n  select(-fight)\n\n\nHere’s a peek of a small chunk of the fully-MUNGE-ed dataset:\n\nCodehead(d[56:65,1:10], n = 10)\n\n\n\n  \n\n\n\nbrms Models\nTo start off with, here’s the model from the paper and the solution set:\n\nCodemodel &lt;- brm(\n  formula = bf(Y ~ 0 + L, family = bernoulli),\n  prior = prior(normal(0, 1), class = b),\n  data = d, \n  chains = chains,\n  iter = iter,\n  warmup = warmup,\n  seed = (seed &lt;- as.integer(Sys.time())))\n\n\nThe seed used is 1739585912.\nTo specify the Bradley-Terrey model you might worry that a large formula would be needed; fortunately brms follows the standard Wilkinson formula syntax (e.g. that of the R stats package, nlme, the Bayesian python package bambi, etc), so instead of writing out all of the variables in the formula we can specify the formula with bf(Y ~ 0 + ., family = bernoulli), where . denotes the sum of all variables (other than the response variable, Y); here 0 tells to brms not to automatically add an intercept to the model.\n\nCodeBT_model &lt;- brm(\n  formula = bf(Y ~ 0 + ., family = bernoulli),\n  prior = prior(normal(0, 1), class = b),\n  data = d, \n  chains = chains,\n  iter = iter,\n  warmup = warmup,\n  seed = (seed &lt;- as.integer(Sys.time())))\n\n\nThe seed used for this one is 1739585981. For fun, let’s re-run the model using only the largest cluster:\n\nCoded.92 &lt;- d[UFClefties$fighter1 %in% (as.integer(fighters$connected_N == 92) * 1:244),]\n\nBT92_model &lt;- brm(\n  formula = bf(Y ~ 0 + ., family = bernoulli),\n  prior = prior(normal(0, 1), class = b),\n  data = d.92, \n  chains = chains,\n  iter = iter,\n  warmup = warmup,\n  seed = (seed &lt;- as.integer(Sys.time())))\n\n\nThe seed used is 1739586149.\nTrace and trank plots look fine for these models; they will not be reproduced here."
+    "text": "The Model\nDataset\nThe dataset includes 244 fights, and a Bradley-Terry model requires a variable for each fight; so here’s the code I used to MUNGE the data:\n\nCode# MUNGE the data:\nd &lt;- UFClefties |&gt;\n  mutate(\n    Y = 1L,                             # response var; brms likes it this way\n    # diasteriomeric description of the fight; lefty win/lose/0:\n    L = as.integer((fighter1.lefty - fighter2.lefty) * (2*fighter1.win - 1)),\n    fight = row_number(),               # helps pivot_wider keep track of things\n    winner = if_else(fighter1.win ==1, fighter1, fighter2),\n    loser = if_else(fighter1.win ==0, fighter1, fighter2)) |&gt;\n  select(Y, L, fight, winner, loser)    # gets rid of unnecessary vars\n\n# Prepare the Bradley-Terry vars (MUNGE again):\nd &lt;- rbind(\n  d |&gt;\n    mutate(fighter = winner,\n           outcome = 1L) |&gt;\n    select(Y, L, fight, fighter, outcome),\n  d |&gt;\n    mutate(fighter = loser,\n           outcome = -1L) |&gt;\n    select(Y, L, fight, fighter, outcome)) |&gt; \n  pivot_wider(\n    id_cols = c(Y, L, fight),\n    names_from = fighter,\n    names_prefix = \"f\",\n    names_sort = TRUE,\n    values_from = outcome,\n    values_fill = 0L) |&gt;\n  select(-fight)\n\n\nHere’s a peek of a small chunk of the fully-MUNGE-ed dataset:\n\nCodehead(d[56:65,1:10], n = 10)\n\n\n\n  \n\n\n\nbrms Models\nTo start off with, here’s the model from the paper and the solution set:\n\nCodemodel &lt;- brm(\n  formula = bf(Y ~ 0 + L, family = bernoulli),\n  prior = prior(normal(0, 1), class = b),\n  data = d, \n  chains = chains,\n  iter = iter,\n  warmup = warmup,\n  seed = (seed &lt;- as.integer(Sys.time())))\n\n\nThe seed used is 1740372201.\nTo specify the Bradley-Terrey model you might worry that a large formula would be needed; fortunately brms follows the standard Wilkinson formula syntax (e.g. that of the R stats package, nlme, the Bayesian python package bambi, etc), so instead of writing out all of the variables in the formula we can specify the formula with bf(Y ~ 0 + ., family = bernoulli), where . denotes the sum of all variables (other than the response variable, Y); here 0 tells to brms not to automatically add an intercept to the model.\n\nCodeBT_model &lt;- brm(\n  formula = bf(Y ~ 0 + ., family = bernoulli),\n  prior = prior(normal(0, 1), class = b),\n  data = d, \n  chains = chains,\n  iter = iter,\n  warmup = warmup,\n  seed = (seed &lt;- as.integer(Sys.time())))\n\n\nThe seed used for this one is 1740372274. For fun, let’s re-run the model using only the largest cluster:\n\nCoded.92 &lt;- d[UFClefties$fighter1 %in% (as.integer(fighters$connected_N == 92) * 1:244),]\n\nBT92_model &lt;- brm(\n  formula = bf(Y ~ 0 + ., family = bernoulli),\n  prior = prior(normal(0, 1), class = b),\n  data = d.92, \n  chains = chains,\n  iter = iter,\n  warmup = warmup,\n  seed = (seed &lt;- as.integer(Sys.time())))\n\n\nThe seed used is 1740372443.\nTrace and trank plots look fine for these models; they will not be reproduced here."
   },
   {
     "objectID": "posts/UFC/index.html#results",
@@ -96,5 +82,40 @@
     "title": "Bradley-Terry models in brms",
     "section": "Version History",
     "text": "Version History\nUpdated 2025-02-14:\n\ninline code\ncleanup dag\ncode folding\nadd lightbox to fight graphs\n\nUpdated 2025-02-10:\n\nimproved graphs\nadded the 92-fighter Bradley-Terrey model\nadded license info\nincreased sample draws\nexpanded conclusions"
+  },
+  {
+    "objectID": "posts/pyMC setup/index.html",
+    "href": "posts/pyMC setup/index.html",
+    "title": "Setting up RStudio for Python & pyMC",
+    "section": "",
+    "text": "How does one go from a linux installation with python3 and RStudio to rendering .qmd files with python and pyMC code chunks? In this blog post I document the steps I took to get these things set up."
+  },
+  {
+    "objectID": "posts/pyMC setup/index.html#setting-up-quarto-to-render-python-code-chunks",
+    "href": "posts/pyMC setup/index.html#setting-up-quarto-to-render-python-code-chunks",
+    "title": "Setting up RStudio for Python & pyMC",
+    "section": "Setting up Quarto to render python code chunks",
+    "text": "Setting up Quarto to render python code chunks\nFirst, within RStudio select a default python version for RStudio (and un-check ‘Automatically activate project-local Python environments’); and for good measure create a keyboard shortcut to insert python code chunks (I opted to remap Ctrl+Alt+P from ‘Re-Run Previous Code Chunk Execution’).\nRStudio requires the reticulate package to execute python code chunks; it can be installed with install.packages:\n```{r}\ninstall.packages(\"reticulate\")\n```\nIn order to render python code chunks quarto requires the jupyter python package. It can be installed with:\n```{bash}\npython3 -m pip install jupyter\n```\nTo check if quarto thinks it’s set up to render python chunks:\n#| echo: fenced\n\nquarto check jupyter\nDid it actually work?\n\n\nCode\n```{python}\nprint(\"Hello World!\")\n1+1\n```\n\n\nHello World!\n\n\n2\n\n\nApparently so."
+  },
+  {
+    "objectID": "posts/pyMC setup/index.html#install-python-packages",
+    "href": "posts/pyMC setup/index.html#install-python-packages",
+    "title": "Setting up RStudio for Python & pyMC",
+    "section": "Install python packages",
+    "text": "Install python packages\nWhich python packages will be needed to actually use pyMC? Here are the ones I installed in advance:\n\nFrom the Bayesian Analysis with Python packages:\n\npymc; optional dependencies listed here:\n\nnose optional, required for pymc.test()\npydot optional, interface to Graphiz; required for graphical representation of pyMC models; graphiz must be installed on the system, e.g. sudo apt install graphviz on Debian or Ubuntu linux\n\narviz model diagnostics, comparison, etc\nbambi Wilkinson formulas for pyMC\nkulprit variable selection within Bambi models\npymc-bart Bayesian Addative Regression Trees\npreliz for choosing priors\nnutpie ‘A fast sampler for Bayesian posteriors’\n\nOther packages:\n\nnumpy numerical analysis\n\nscipy more numerical analysis\n\npandas MUNGE data\nmatplotlib data visualization\n\nseaborn more data vis for statistical models\n\n\n\nIt would make too much sense to install python packages by calling pip from a python chunk, like so:\n```{python}\npip install pymc bambi arviz kulprit pymc-bart preliz nutpie numpy scipy pandas matplotlib seaborn nose pydot\n```\nUnfortunately reticulate doesn’t support this; but note that this chunk will run properly when rendered, as you will recall that quarto renders this with the jupyter python package. Reticulate could be used, e.g. reticulate::py_install(\"pymc\",pip=TRUE), but nothing beats the good old command line:\n```{bash}\npython3 -m pip install pymc bambi arviz kulprit pymc-bart preliz nutpie numpy scipy pandas matplotlib seaborn nose pydot\n```\nThe following outdated packages (python3 pip list --outdated) were updated:\n```{bash}\npython3 -m pip install pymc numpy scipy matplotlib matplotlib-inline -U\n```"
+  },
+  {
+    "objectID": "posts/pyMC setup/index.html#pymc-example",
+    "href": "posts/pyMC setup/index.html#pymc-example",
+    "title": "Setting up RStudio for Python & pyMC",
+    "section": "pyMC example",
+    "text": "pyMC example\nFor this example we will recreate model 4.1 from the Statistical Rethinking text, as demonstrated in the pymc resources:\nSetup the python libraries:\n\n\nCode\nimport arviz as az\nimport matplotlib.pyplot as plt\nimport numpy as np\nimport pandas as pd\nimport pymc as pm\nimport scipy.stats as stats\n\nfrom scipy.interpolate import griddata\n\n\nReaders who have already read Statistical Rethinking may recall that the Howell1 dataset contains demographic data (height, weight, age, gender) from Kalahari Kung San people. Load the dataset:\n\n\nCode\nd = pd.read_csv(\"Howell1.csv\", sep=\";\", header=0)\nd2 = d[d.age &gt;= 18]\n\n\nA mathematical description of model 4.1 (\\(h_i\\) is the height of participant \\(i\\)):\n\\[\n\\begin{align}\nh_i &\\sim \\operatorname{Normal} (\\mu, \\sigma) \\\\\n\\mu &\\sim \\operatorname{Normal} (178, 20) \\\\\n\\sigma &\\sim \\operatorname{Uniform} (0, 50) \\\\\n\\end{align}\n\\]\nThis model was translated into pyMC as:\n\n\nCode\nwith pm.Model() as m4_1:\n    mu = pm.Normal(\"mu\", mu=178, sigma=20)\n    sigma = pm.Uniform(\"sigma\", lower=0, upper=50)\n    height = pm.Normal(\"height\", mu=mu, sigma=sigma, observed=d2.height.values)\n    \nwith m4_1:\n    trace_4_1 = pm.sample(1000, tune=1000)\n\n\n\n\n\n\n\n\nUsing arviz to summarize the results; first the trace plot:\n\n\nCode\naz.plot_trace(\n  trace_4_1, \n  show=\"FALSE\"           # don't show backend function\n)\n\n\n\n\n\n\n\n\n\narray([[&lt;Axes: title={'center': 'mu'}&gt;, &lt;Axes: title={'center': 'mu'}&gt;],\n       [&lt;Axes: title={'center': 'sigma'}&gt;,\n        &lt;Axes: title={'center': 'sigma'}&gt;]], dtype=object)\n\n\nAnd a data table summarizing the results:\n\n\nCode\naz.summary(trace_4_1, round_to=2, kind=\"stats\")\n\n\n\n\n\n\n\n\n\nmean\nsd\nhdi_3%\nhdi_97%\n\n\n\n\nmu\n154.61\n0.42\n153.81\n155.39\n\n\nsigma\n7.76\n0.30\n7.22\n8.33"
+  },
+  {
+    "objectID": "posts/pyMC setup/index.html#useful-resources",
+    "href": "posts/pyMC setup/index.html#useful-resources",
+    "title": "Setting up RStudio for Python & pyMC",
+    "section": "Useful resources",
+    "text": "Useful resources\n\nPython in quarto\npyMC resources\n\npymc-resources Statistical Rethinking environment\n\nreticulate cheatsheet"
   }
 ]

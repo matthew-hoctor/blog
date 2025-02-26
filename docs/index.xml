@@ -12,6 +12,390 @@
 <generator>quarto-1.3.450</generator>
 <lastBuildDate>Sun, 02 Feb 2025 08:00:00 GMT</lastBuildDate>
 <item>
+  <title>Setting up RStudio for Python &amp; pyMC</title>
+  <dc:creator>Matthew Hoctor</dc:creator>
+  <link>https://matthew-hoctor.github.io/blog/posts/pyMC setup/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>How does one go from a linux installation with python3 and RStudio to rendering .qmd files with python and pyMC code chunks? In this blog post I document the steps I took to get these things set up.</p>
+<section id="setting-up-quarto-to-render-python-code-chunks" class="level2">
+<h2 class="anchored" data-anchor-id="setting-up-quarto-to-render-python-code-chunks">Setting up Quarto to render python code chunks</h2>
+<p>First, within RStudio <a href="https://docs.posit.co/ide/user/ide/guide/environments/py/python.html#selecting-a-default-version-of-python">select a default python version for RStudio</a> (and un-check ‘Automatically activate project-local Python environments’); and for good measure <a href="https://support.posit.co/hc/en-us/articles/206382178-Customizing-Keyboard-Shortcuts-in-the-RStudio-IDE">create a keyboard shortcut</a> to insert python code chunks (I opted to remap Ctrl+Alt+P from ‘Re-Run Previous Code Chunk Execution’).</p>
+<p>RStudio <a href="https://rstudio.github.io/reticulate/articles/rstudio_ide.html">requires the <code>reticulate</code> package</a> to execute python code chunks; it can be installed with <code>install.packages</code>:</p>
+<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```{r}</span></span>
+<span id="cb1-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"reticulate"</span>)</span>
+<span id="cb1-3"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```</span></span></code></pre></div>
+<p>In order to <a href="https://quarto.org/docs/computations/python.html">render python code chunks</a> quarto requires the <code>jupyter</code> python package. It can be installed with:</p>
+<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```{bash}</span></span>
+<span id="cb2-2"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">python3</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-m</span> pip install jupyter</span>
+<span id="cb2-3"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```</span></span></code></pre></div>
+<p>To check if quarto thinks it’s set up to render python chunks:</p>
+<pre class="{bash}"><code>#| echo: fenced
+
+quarto check jupyter</code></pre>
+<p>Did it actually work?</p>
+<div class="cell" data-execution_count="1">
+<details open="">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```{python}</span></span>
+<span id="cb4-2"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Hello World!"</span>)</span>
+<span id="cb4-3"><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb4-4"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```</span></span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Hello World!</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>2</code></pre>
+</div>
+</div>
+<p>Apparently so.</p>
+</section>
+<section id="install-python-packages" class="level2">
+<h2 class="anchored" data-anchor-id="install-python-packages">Install python packages</h2>
+<p>Which python packages will be needed to actually use pyMC? Here are the ones I installed in advance:</p>
+<ul>
+<li>From the <a href="https://github.com/aloctavodia/BAP3?tab=readme-ov-file#environment-installation">Bayesian Analysis with Python</a> packages:
+<ul>
+<li><a href="https://pypi.org/project/pymc/">pymc</a>; <a href="https://pymcmc.readthedocs.io/en/latest/INSTALL.html#dependencies">optional dependencies listed here</a>:
+<ul>
+<li><a href="https://pypi.org/project/nose/">nose</a> optional, required for <code>pymc.test()</code></li>
+<li><a href="https://pypi.org/project/pydot/">pydot</a> optional, interface to Graphiz; required for graphical representation of pyMC models; <a href="https://graphviz.org/">graphiz</a> must be <a href="https://graphviz.org/download/">installed</a> on the system, e.g.&nbsp;<code>sudo apt install graphviz</code> on Debian or Ubuntu linux</li>
+</ul></li>
+<li><a href="https://pypi.org/project/arviz/">arviz</a> model diagnostics, comparison, etc</li>
+<li><a href="https://pypi.org/project/bambi/">bambi</a> Wilkinson formulas for pyMC</li>
+<li><a href="https://pypi.org/project/kulprit/">kulprit</a> variable selection within Bambi models</li>
+<li><a href="https://pypi.org/project/pymc-bart/">pymc-bart</a> Bayesian Addative Regression Trees</li>
+<li><a href="https://pypi.org/project/preliz/">preliz</a> for choosing priors</li>
+<li><a href="https://pypi.org/project/nutpie/">nutpie</a> ‘A fast sampler for Bayesian posteriors’</li>
+</ul></li>
+<li>Other packages:
+<ul>
+<li><a href="https://pypi.org/project/numpy/">numpy</a> numerical analysis
+<ul>
+<li><a href="https://pypi.org/project/scipy/">scipy</a> more numerical analysis</li>
+</ul></li>
+<li><a href="https://pypi.org/project/pandas/">pandas</a> MUNGE data</li>
+<li><a href="https://pypi.org/project/matplotlib/">matplotlib</a> data visualization
+<ul>
+<li><a href="https://pypi.org/project/seaborn/">seaborn</a> more data vis for statistical models</li>
+</ul></li>
+</ul></li>
+</ul>
+<p>It would make too much sense to install python packages by calling pip from a python chunk, like so:</p>
+<div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```{python}</span></span>
+<span id="cb7-2">pip install pymc bambi arviz kulprit pymc<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>bart preliz nutpie numpy scipy pandas matplotlib seaborn nose pydot</span>
+<span id="cb7-3"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```</span></span></code></pre></div>
+<p>Unfortunately <code>reticulate</code> doesn’t support this; but note that this chunk will run properly when rendered, as you will recall that quarto renders this with the <code>jupyter</code> python package. Reticulate could be used, e.g.&nbsp;<code>reticulate::py_install("pymc",pip=TRUE)</code>, but nothing beats the good old command line:</p>
+<div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```{bash}</span></span>
+<span id="cb8-2"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">python3</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-m</span> pip install pymc bambi arviz kulprit pymc-bart preliz nutpie numpy scipy pandas matplotlib seaborn nose pydot</span>
+<span id="cb8-3"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```</span></span></code></pre></div>
+<p>The following outdated packages (<code>python3 pip list --outdated</code>) were updated:</p>
+<div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```{bash}</span></span>
+<span id="cb9-2"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">python3</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-m</span> pip install pymc numpy scipy matplotlib matplotlib-inline <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-U</span></span>
+<span id="cb9-3"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```</span></span></code></pre></div>
+</section>
+<section id="pymc-example" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="pymc-example">pyMC example</h2>
+<p>For this example we will recreate model 4.1 from the <a href="http://xcelab.net/rm/statistical-rethinking/">Statistical Rethinking</a> text, as demonstrated in the <a href="https://github.com/pymc-devs/pymc-resources/blob/main/Rethinking_2/Chp_04.ipynb">pymc resources</a>:</p>
+<p>Setup the python libraries:</p>
+<div class="cell" data-execution_count="2">
+<details open="">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> arviz <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> az</span>
+<span id="cb10-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> plt</span>
+<span id="cb10-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb10-4"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pd</span>
+<span id="cb10-5"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> pymc <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pm</span>
+<span id="cb10-6"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> scipy.stats <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> stats</span>
+<span id="cb10-7"></span>
+<span id="cb10-8"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> scipy.interpolate <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> griddata</span></code></pre></div>
+</details>
+</div>
+<p>Readers who have already read Statistical Rethinking may recall that the Howell1 dataset contains demographic data (height, weight, age, gender) from Kalahari Kung San people. Load the dataset:</p>
+<div class="cell" data-execution_count="3">
+<details open="">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1">d <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Howell1.csv"</span>, sep<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">";"</span>, header<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb11-2">d2 <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> d[d.age <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">18</span>]</span></code></pre></div>
+</details>
+</div>
+<p>A mathematical description of model 4.1 (<img src="https://latex.codecogs.com/png.latex?h_i"> is the height of participant <img src="https://latex.codecogs.com/png.latex?i">):</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Balign%7D%0Ah_i%20&amp;%5Csim%20%5Coperatorname%7BNormal%7D%20(%5Cmu,%20%5Csigma)%20%5C%5C%0A%5Cmu%20&amp;%5Csim%20%5Coperatorname%7BNormal%7D%20(178,%2020)%20%5C%5C%0A%5Csigma%20&amp;%5Csim%20%5Coperatorname%7BUniform%7D%20(0,%2050)%20%5C%5C%0A%5Cend%7Balign%7D%0A"></p>
+<p>This model was translated into pyMC as:</p>
+<div class="cell" data-execution_count="4">
+<details open="">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">with</span> pm.Model() <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> m4_1:</span>
+<span id="cb12-2">    mu <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pm.Normal(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mu"</span>, mu<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">178</span>, sigma<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>)</span>
+<span id="cb12-3">    sigma <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pm.Uniform(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sigma"</span>, lower<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, upper<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">50</span>)</span>
+<span id="cb12-4">    height <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pm.Normal(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"height"</span>, mu<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>mu, sigma<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>sigma, observed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>d2.height.values)</span>
+<span id="cb12-5">    </span>
+<span id="cb12-6"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">with</span> m4_1:</span>
+<span id="cb12-7">    trace_4_1 <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pm.sample(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>, tune<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id":"9aea6b5d3aeb46d09e22bb03de4d519c","version_major":2,"version_minor":0,"quarto_mimetype":"application/vnd.jupyter.widget-view+json"}
+</script>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<p>Using arviz to summarize the results; first the trace plot:</p>
+<div class="cell page-columns page-full" data-execution_count="5">
+<details open="">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1">az.plot_trace(</span>
+<span id="cb13-2">  trace_4_1, </span>
+<span id="cb13-3">  show<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"FALSE"</span>           <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># don't show backend function</span></span>
+<span id="cb13-4">)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-display column-screen">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://matthew-hoctor.github.io/blog/posts/pyMC setup/index_files/figure-html/cell-6-output-1.png" width="912" height="357" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>array([[&lt;Axes: title={'center': 'mu'}&gt;, &lt;Axes: title={'center': 'mu'}&gt;],
+       [&lt;Axes: title={'center': 'sigma'}&gt;,
+        &lt;Axes: title={'center': 'sigma'}&gt;]], dtype=object)</code></pre>
+</div>
+</div>
+<p>And a data table summarizing the results:</p>
+<div class="cell" data-execution_count="6">
+<details open="">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1">az.summary(trace_4_1, round_to<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, kind<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"stats"</span>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">mean</th>
+<th data-quarto-table-cell-role="th">sd</th>
+<th data-quarto-table-cell-role="th">hdi_3%</th>
+<th data-quarto-table-cell-role="th">hdi_97%</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">mu</td>
+<td>154.61</td>
+<td>0.42</td>
+<td>153.81</td>
+<td>155.39</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">sigma</td>
+<td>7.76</td>
+<td>0.30</td>
+<td>7.22</td>
+<td>8.33</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="useful-resources" class="level2">
+<h2 class="anchored" data-anchor-id="useful-resources">Useful resources</h2>
+<ul>
+<li><a href="https://quarto.org/docs/computations/python.html">Python in quarto</a></li>
+<li><a href="https://github.com/pymc-devs/pymc-resources/tree/main">pyMC resources</a>
+<ul>
+<li><a href="https://github.com/pymc-devs/pymc-resources/blob/main/Rethinking_2/environment_v4.yml">pymc-resources Statistical Rethinking environment</a></li>
+</ul></li>
+<li><a href="https://rstudio.github.io/cheatsheets/html/reticulate.html">reticulate cheatsheet</a></li>
+</ul>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div id="quarto-reuse" class="quarto-appendix-contents"><div>CC BY-SA 4.0</div></div></section></div> ]]></description>
+  <category>pyMC</category>
+  <category>python</category>
+  <category>RStudio</category>
+  <category>setup</category>
+  <category>Bayesian statistics</category>
+  <guid>https://matthew-hoctor.github.io/blog/posts/pyMC setup/index.html</guid>
+  <pubDate>Sun, 02 Feb 2025 08:00:00 GMT</pubDate>
+</item>
+<item>
   <title>Bradley-Terry models in brms</title>
   <dc:creator>Matthew Hoctor</dc:creator>
   <link>https://matthew-hoctor.github.io/blog/posts/UFC/index.html</link>
@@ -1193,7 +1577,7 @@ background-color: null;
 font-style: inherit;">)</span></span></code></pre></div>
 </details>
 </div>
-<p>The seed used is 1739585912.</p>
+<p>The seed used is 1740372201.</p>
 <p>To specify the Bradley-Terrey model you might worry that a large formula would be needed; fortunately brms follows the standard <a href="https://academic.oup.com/jrsssc/article/22/3/392/6882728?login=false">Wilkinson formula</a> syntax (e.g.&nbsp;that of the R stats package, nlme, the Bayesian python package bambi, etc), so instead of writing out all of the variables in the formula we can specify the formula with <code>bf(Y ~ 0 + ., family = bernoulli)</code>, where <code>.</code> denotes the sum of all variables (other than the response variable, <code>Y</code>); here <code>0</code> tells to brms not to automatically add an intercept to the model.</p>
 <div class="cell">
 <details open=""><summary>Code</summary><div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va" style="color: #111111;
@@ -1298,7 +1682,7 @@ background-color: null;
 font-style: inherit;">)</span></span></code></pre></div>
 </details>
 </div>
-<p>The seed used for this one is 1739585981. For fun, let’s re-run the model using only the largest cluster:</p>
+<p>The seed used for this one is 1740372274. For fun, let’s re-run the model using only the largest cluster:</p>
 <div class="cell">
 <details open=""><summary>Code</summary><div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va" style="color: #111111;
 background-color: null;
@@ -1450,7 +1834,7 @@ background-color: null;
 font-style: inherit;">)</span></span></code></pre></div>
 </details>
 </div>
-<p>The seed used is 1739586149.</p>
+<p>The seed used is 1740372443.</p>
 <p>Trace and trank plots look fine for these models; they will not be reproduced here.</p>
 </section></section><section id="results" class="level2"><h2 class="anchored" data-anchor-id="results">Results</h2>
 <section id="posterior-probabilities" class="level3"><h3 class="anchored" data-anchor-id="posterior-probabilities">Posterior probabilities</h3>
@@ -1652,7 +2036,7 @@ font-style: inherit;">)</span></span></code></pre></div>
 
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
-{"columns":[{"label":["Model"],"name":[1],"type":["chr"],"align":["left"]},{"label":["value"],"name":[2],"type":["dbl"],"align":["right"]},{"label":[".lower"],"name":[3],"type":["dbl"],"align":["right"]},{"label":[".upper"],"name":[4],"type":["dbl"],"align":["right"]},{"label":[".width"],"name":[5],"type":["dbl"],"align":["right"]},{"label":[".point"],"name":[6],"type":["chr"],"align":["left"]},{"label":[".interval"],"name":[7],"type":["chr"],"align":["left"]}],"data":[{"1":"Base_Model","2":"-0.0003375623","3":"-0.3759727","4":"0.3769857","5":"0.89","6":"mean","7":"hdi"},{"1":"BT_Model","2":"0.0468183657","3":"-0.4778453","4":"0.5697148","5":"0.89","6":"mean","7":"hdi"},{"1":"BT92_Model","2":"0.2946370236","3":"-0.3901831","4":"0.9856854","5":"0.89","6":"mean","7":"hdi"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["Model"],"name":[1],"type":["chr"],"align":["left"]},{"label":["value"],"name":[2],"type":["dbl"],"align":["right"]},{"label":[".lower"],"name":[3],"type":["dbl"],"align":["right"]},{"label":[".upper"],"name":[4],"type":["dbl"],"align":["right"]},{"label":[".width"],"name":[5],"type":["dbl"],"align":["right"]},{"label":[".point"],"name":[6],"type":["chr"],"align":["left"]},{"label":[".interval"],"name":[7],"type":["chr"],"align":["left"]}],"data":[{"1":"Base_Model","2":"0.0008226888","3":"-0.3769059","4":"0.3807918","5":"0.89","6":"mean","7":"hdi"},{"1":"BT_Model","2":"0.0462731343","3":"-0.4786591","4":"0.5702799","5":"0.89","6":"mean","7":"hdi"},{"1":"BT92_Model","2":"0.2939471798","3":"-0.4041537","4":"0.9747157","5":"0.89","6":"mean","7":"hdi"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 </div>
@@ -1969,30 +2353,6 @@ font-style: inherit;">)</span></span></code></pre></div>
   <category>brms</category>
   <category>Bayesian statistics</category>
   <guid>https://matthew-hoctor.github.io/blog/posts/UFC/index.html</guid>
-  <pubDate>Sun, 02 Feb 2025 08:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Test Post</title>
-  <dc:creator>Matthew Hoctor</dc:creator>
-  <link>https://matthew-hoctor.github.io/blog/posts/test post/index.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="a-heading" class="level2">
-<h2 class="anchored" data-anchor-id="a-heading">A heading</h2>
-<p>This is the first post in a Quarto blog. Welcome!</p>
-<p><img src="https://matthew-hoctor.github.io/blog/posts/test post/thumbnail.jpg" class="img-fluid"></p>
-
-
-<!-- -->
-
-</section>
-
- ]]></description>
-  <category>test</category>
-  <guid>https://matthew-hoctor.github.io/blog/posts/test post/index.html</guid>
   <pubDate>Sun, 02 Feb 2025 08:00:00 GMT</pubDate>
 </item>
 </channel>
