@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Matthew Hoctor">
-<meta name="dcterms.date" content="2025-02-02">
+<meta name="dcterms.date" content="2025-02-25">
 
 <title>Divergent Cognitions - Setting up RStudio for Python &amp; pyMC</title>
 <style>
@@ -177,7 +177,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">February 2, 2025</p>
+        <p class="date">February 25, 2025</p>
       </div>
     </div>
     
@@ -243,7 +243,7 @@ quarto check jupyter</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>Hello World!</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>2</code></pre>
 </div>
 </div>
@@ -309,13 +309,16 @@ quarto check jupyter</code></pre>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.interpolate <span class="im">import</span> griddata</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+<div class="cell-output cell-output-stderr">
+<pre><code>WARNING (pytensor.tensor.blas): Using NumPy C-API based implementation for BLAS functions.</code></pre>
+</div>
 </div>
 <p>Readers who have already read Statistical Rethinking may recall that the Howell1 dataset contains demographic data (height, weight, age, gender) from Kalahari Kung San people. Load the dataset:</p>
 <div class="cell" data-execution_count="3">
 <details open="">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> pd.read_csv(<span class="st">"Howell1.csv"</span>, sep<span class="op">=</span><span class="st">";"</span>, header<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>d2 <span class="op">=</span> d[d.age <span class="op">&gt;=</span> <span class="dv">18</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> pd.read_csv(<span class="st">"Howell1.csv"</span>, sep<span class="op">=</span><span class="st">";"</span>, header<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>d2 <span class="op">=</span> d[d.age <span class="op">&gt;=</span> <span class="dv">18</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p>A mathematical description of model 4.1 (<span class="math inline">\(h_i\)</span> is the height of participant <span class="math inline">\(i\)</span>):</p>
@@ -330,17 +333,17 @@ h_i &amp;\sim \operatorname{Normal} (\mu, \sigma) \\
 <div class="cell" data-execution_count="4">
 <details open="">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> pm.Model() <span class="im">as</span> m4_1:</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    mu <span class="op">=</span> pm.Normal(<span class="st">"mu"</span>, mu<span class="op">=</span><span class="dv">178</span>, sigma<span class="op">=</span><span class="dv">20</span>)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    sigma <span class="op">=</span> pm.Uniform(<span class="st">"sigma"</span>, lower<span class="op">=</span><span class="dv">0</span>, upper<span class="op">=</span><span class="dv">50</span>)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    height <span class="op">=</span> pm.Normal(<span class="st">"height"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, observed<span class="op">=</span>d2.height.values)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> m4_1:</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    trace_4_1 <span class="op">=</span> pm.sample(<span class="dv">1000</span>, tune<span class="op">=</span><span class="dv">1000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> pm.Model() <span class="im">as</span> m4_1:</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    mu <span class="op">=</span> pm.Normal(<span class="st">"mu"</span>, mu<span class="op">=</span><span class="dv">178</span>, sigma<span class="op">=</span><span class="dv">20</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    sigma <span class="op">=</span> pm.Uniform(<span class="st">"sigma"</span>, lower<span class="op">=</span><span class="dv">0</span>, upper<span class="op">=</span><span class="dv">50</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    height <span class="op">=</span> pm.Normal(<span class="st">"height"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, observed<span class="op">=</span>d2.height.values)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> m4_1:</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    trace_4_1 <span class="op">=</span> pm.sample(<span class="dv">1000</span>, tune<span class="op">=</span><span class="dv">1000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <script type="application/vnd.jupyter.widget-view+json">
-{"model_id":"9aea6b5d3aeb46d09e22bb03de4d519c","version_major":2,"version_minor":0,"quarto_mimetype":"application/vnd.jupyter.widget-view+json"}
+{"model_id":"11e6e66cb54844839f10dfecfa1217b4","version_major":2,"version_minor":0,"quarto_mimetype":"application/vnd.jupyter.widget-view+json"}
 </script>
 </div>
 <div class="cell-output cell-output-display">
@@ -351,19 +354,19 @@ h_i &amp;\sim \operatorname{Normal} (\mu, \sigma) \\
 <div class="cell page-columns page-full" data-execution_count="5">
 <details open="">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>az.plot_trace(</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  trace_4_1, </span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  show<span class="op">=</span><span class="st">"FALSE"</span>           <span class="co"># don't show backend function</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>az.plot_trace(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  trace_4_1, </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  show<span class="op">=</span><span class="st">"FALSE"</span>           <span class="co"># don't show backend function</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display column-screen">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="index_files/figure-html/cell-6-output-1.png" width="912" height="357" class="figure-img"></p>
+<p><img src="index_files/figure-html/cell-6-output-1.png" width="920" height="357" class="figure-img"></p>
 </figure>
 </div>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="11">
+<div class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>array([[&lt;Axes: title={'center': 'mu'}&gt;, &lt;Axes: title={'center': 'mu'}&gt;],
        [&lt;Axes: title={'center': 'sigma'}&gt;,
         &lt;Axes: title={'center': 'sigma'}&gt;]], dtype=object)</code></pre>
@@ -373,9 +376,9 @@ h_i &amp;\sim \operatorname{Normal} (\mu, \sigma) \\
 <div class="cell" data-execution_count="6">
 <details open="">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>az.summary(trace_4_1, round_to<span class="op">=</span><span class="dv">2</span>, kind<span class="op">=</span><span class="st">"stats"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>az.summary(trace_4_1, round_to<span class="op">=</span><span class="dv">2</span>, kind<span class="op">=</span><span class="st">"stats"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="6">
 <div>
 
 
@@ -394,15 +397,15 @@ h_i &amp;\sim \operatorname{Normal} (\mu, \sigma) \\
 <td data-quarto-table-cell-role="th">mu</td>
 <td>154.61</td>
 <td>0.42</td>
-<td>153.81</td>
-<td>155.39</td>
+<td>153.83</td>
+<td>155.38</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">sigma</td>
-<td>7.76</td>
-<td>0.30</td>
-<td>7.22</td>
-<td>8.33</td>
+<td>7.77</td>
+<td>0.29</td>
+<td>7.23</td>
+<td>8.32</td>
 </tr>
 </tbody>
 </table>
@@ -427,7 +430,7 @@ h_i &amp;\sim \operatorname{Normal} (\mu, \sigma) \\
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div id="quarto-reuse" class="quarto-appendix-contents"><div>CC BY-SA 4.0</div></div></section></div></main> <!-- /main -->
 <script type="application/vnd.jupyter.widget-state+json">
-{"state":{"0ed8c7f517aa4ecf8102c4d05daee255":{"model_module":"@jupyter-widgets/base","model_module_version":"2.0.0","model_name":"LayoutModel","state":{"_model_module":"@jupyter-widgets/base","_model_module_version":"2.0.0","_model_name":"LayoutModel","_view_count":null,"_view_module":"@jupyter-widgets/base","_view_module_version":"2.0.0","_view_name":"LayoutView","align_content":null,"align_items":null,"align_self":null,"border_bottom":null,"border_left":null,"border_right":null,"border_top":null,"bottom":null,"display":null,"flex":null,"flex_flow":null,"grid_area":null,"grid_auto_columns":null,"grid_auto_flow":null,"grid_auto_rows":null,"grid_column":null,"grid_gap":null,"grid_row":null,"grid_template_areas":null,"grid_template_columns":null,"grid_template_rows":null,"height":null,"justify_content":null,"justify_items":null,"left":null,"margin":null,"max_height":null,"max_width":null,"min_height":null,"min_width":null,"object_fit":null,"object_position":null,"order":null,"overflow":null,"padding":null,"right":null,"top":null,"visibility":null,"width":null}},"5f4e59a60cd94526b2d4e9e7064572ec":{"model_module":"@jupyter-widgets/output","model_module_version":"1.0.0","model_name":"OutputModel","state":{"_dom_classes":[],"_model_module":"@jupyter-widgets/output","_model_module_version":"1.0.0","_model_name":"OutputModel","_view_count":null,"_view_module":"@jupyter-widgets/output","_view_module_version":"1.0.0","_view_name":"OutputView","layout":"IPY_MODEL_0ed8c7f517aa4ecf8102c4d05daee255","msg_id":"","outputs":[{"data":{"text/html":"<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">                                                                                                                   \n <span style=\"font-weight: bold\"> Progress                 </span> <span style=\"font-weight: bold\"> Draws </span> <span style=\"font-weight: bold\"> Divergences </span> <span style=\"font-weight: bold\"> Step size </span> <span style=\"font-weight: bold\"> Grad evals </span> <span style=\"font-weight: bold\"> Sampling Speed  </span> <span style=\"font-weight: bold\"> Elapsed </span> <span style=\"font-weight: bold\"> Remaining </span> \n ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── \n  <span style=\"color: #1f77b4; text-decoration-color: #1f77b4\">━━━━━━━━━━━━━━━━━━━━━━━━</span>   2000    0             1.13        3            1333.77 draws/s   0:00:01   0:00:00    \n  <span style=\"color: #1f77b4; text-decoration-color: #1f77b4\">━━━━━━━━━━━━━━━━━━━━━━━━</span>   2000    0             0.98        3            1364.57 draws/s   0:00:01   0:00:00    \n  <span style=\"color: #1f77b4; text-decoration-color: #1f77b4\">━━━━━━━━━━━━━━━━━━━━━━━━</span>   2000    0             1.17        1            1197.40 draws/s   0:00:01   0:00:00    \n  <span style=\"color: #1f77b4; text-decoration-color: #1f77b4\">━━━━━━━━━━━━━━━━━━━━━━━━</span>   2000    0             1.30        1            1071.99 draws/s   0:00:01   0:00:00    \n                                                                                                                   \n</pre>\n","text/plain":"                                                                                                                   \n \u001b[1m \u001b[0m\u001b[1mProgress                \u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mDraws\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mDivergences\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mStep size\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mGrad evals\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mSampling Speed \u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mElapsed\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mRemaining\u001b[0m\u001b[1m \u001b[0m \n ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── \n  \u001b[38;2;31;119;180m━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m   2000    0             1.13        3            1333.77 draws/s   0:00:01   0:00:00    \n  \u001b[38;2;31;119;180m━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m   2000    0             0.98        3            1364.57 draws/s   0:00:01   0:00:00    \n  \u001b[38;2;31;119;180m━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m   2000    0             1.17        1            1197.40 draws/s   0:00:01   0:00:00    \n  \u001b[38;2;31;119;180m━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m   2000    0             1.30        1            1071.99 draws/s   0:00:01   0:00:00    \n                                                                                                                   \n"},"metadata":{},"output_type":"display_data"}],"tabbable":null,"tooltip":null}},"9aea6b5d3aeb46d09e22bb03de4d519c":{"model_module":"@jupyter-widgets/output","model_module_version":"1.0.0","model_name":"OutputModel","state":{"_dom_classes":[],"_model_module":"@jupyter-widgets/output","_model_module_version":"1.0.0","_model_name":"OutputModel","_view_count":null,"_view_module":"@jupyter-widgets/output","_view_module_version":"1.0.0","_view_name":"OutputView","layout":"IPY_MODEL_d9291c4a8dc04b1f8480785418772e87","msg_id":"","outputs":[{"data":{"text/html":"<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">                                                                                                                   \n <span style=\"font-weight: bold\"> Progress                 </span> <span style=\"font-weight: bold\"> Draws </span> <span style=\"font-weight: bold\"> Divergences </span> <span style=\"font-weight: bold\"> Step size </span> <span style=\"font-weight: bold\"> Grad evals </span> <span style=\"font-weight: bold\"> Sampling Speed  </span> <span style=\"font-weight: bold\"> Elapsed </span> <span style=\"font-weight: bold\"> Remaining </span> \n ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── \n  <span style=\"color: #1f77b4; text-decoration-color: #1f77b4\">━━━━━━━━━━━━━━━━━━━━━━━━</span>   2000    0             1.48        1            1628.43 draws/s   0:00:01   0:00:00    \n  <span style=\"color: #1f77b4; text-decoration-color: #1f77b4\">━━━━━━━━━━━━━━━━━━━━━━━━</span>   2000    0             0.91        3            1552.61 draws/s   0:00:01   0:00:00    \n  <span style=\"color: #1f77b4; text-decoration-color: #1f77b4\">━━━━━━━━━━━━━━━━━━━━━━━━</span>   2000    0             1.42        3            1377.86 draws/s   0:00:01   0:00:00    \n  <span style=\"color: #1f77b4; text-decoration-color: #1f77b4\">━━━━━━━━━━━━━━━━━━━━━━━━</span>   2000    0             1.13        3            1152.12 draws/s   0:00:01   0:00:00    \n                                                                                                                   \n</pre>\n","text/plain":"                                                                                                                   \n \u001b[1m \u001b[0m\u001b[1mProgress                \u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mDraws\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mDivergences\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mStep size\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mGrad evals\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mSampling Speed \u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mElapsed\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mRemaining\u001b[0m\u001b[1m \u001b[0m \n ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── \n  \u001b[38;2;31;119;180m━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m   2000    0             1.48        1            1628.43 draws/s   0:00:01   0:00:00    \n  \u001b[38;2;31;119;180m━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m   2000    0             0.91        3            1552.61 draws/s   0:00:01   0:00:00    \n  \u001b[38;2;31;119;180m━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m   2000    0             1.42        3            1377.86 draws/s   0:00:01   0:00:00    \n  \u001b[38;2;31;119;180m━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m   2000    0             1.13        3            1152.12 draws/s   0:00:01   0:00:00    \n                                                                                                                   \n"},"metadata":{},"output_type":"display_data"}],"tabbable":null,"tooltip":null}},"d9291c4a8dc04b1f8480785418772e87":{"model_module":"@jupyter-widgets/base","model_module_version":"2.0.0","model_name":"LayoutModel","state":{"_model_module":"@jupyter-widgets/base","_model_module_version":"2.0.0","_model_name":"LayoutModel","_view_count":null,"_view_module":"@jupyter-widgets/base","_view_module_version":"2.0.0","_view_name":"LayoutView","align_content":null,"align_items":null,"align_self":null,"border_bottom":null,"border_left":null,"border_right":null,"border_top":null,"bottom":null,"display":null,"flex":null,"flex_flow":null,"grid_area":null,"grid_auto_columns":null,"grid_auto_flow":null,"grid_auto_rows":null,"grid_column":null,"grid_gap":null,"grid_row":null,"grid_template_areas":null,"grid_template_columns":null,"grid_template_rows":null,"height":null,"justify_content":null,"justify_items":null,"left":null,"margin":null,"max_height":null,"max_width":null,"min_height":null,"min_width":null,"object_fit":null,"object_position":null,"order":null,"overflow":null,"padding":null,"right":null,"top":null,"visibility":null,"width":null}}},"version_major":2,"version_minor":0}
+{"state":{"003b9b4351044ea98b6afe779a74b9ca":{"model_module":"@jupyter-widgets/base","model_module_version":"2.0.0","model_name":"LayoutModel","state":{"_model_module":"@jupyter-widgets/base","_model_module_version":"2.0.0","_model_name":"LayoutModel","_view_count":null,"_view_module":"@jupyter-widgets/base","_view_module_version":"2.0.0","_view_name":"LayoutView","align_content":null,"align_items":null,"align_self":null,"border_bottom":null,"border_left":null,"border_right":null,"border_top":null,"bottom":null,"display":null,"flex":null,"flex_flow":null,"grid_area":null,"grid_auto_columns":null,"grid_auto_flow":null,"grid_auto_rows":null,"grid_column":null,"grid_gap":null,"grid_row":null,"grid_template_areas":null,"grid_template_columns":null,"grid_template_rows":null,"height":null,"justify_content":null,"justify_items":null,"left":null,"margin":null,"max_height":null,"max_width":null,"min_height":null,"min_width":null,"object_fit":null,"object_position":null,"order":null,"overflow":null,"padding":null,"right":null,"top":null,"visibility":null,"width":null}},"11e6e66cb54844839f10dfecfa1217b4":{"model_module":"@jupyter-widgets/output","model_module_version":"1.0.0","model_name":"OutputModel","state":{"_dom_classes":[],"_model_module":"@jupyter-widgets/output","_model_module_version":"1.0.0","_model_name":"OutputModel","_view_count":null,"_view_module":"@jupyter-widgets/output","_view_module_version":"1.0.0","_view_name":"OutputView","layout":"IPY_MODEL_003b9b4351044ea98b6afe779a74b9ca","msg_id":"","outputs":[{"data":{"text/html":"<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">                                                                                                                   \n <span style=\"font-weight: bold\"> Progress                 </span> <span style=\"font-weight: bold\"> Draws </span> <span style=\"font-weight: bold\"> Divergences </span> <span style=\"font-weight: bold\"> Step size </span> <span style=\"font-weight: bold\"> Grad evals </span> <span style=\"font-weight: bold\"> Sampling Speed  </span> <span style=\"font-weight: bold\"> Elapsed </span> <span style=\"font-weight: bold\"> Remaining </span> \n ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── \n  <span style=\"color: #1f77b4; text-decoration-color: #1f77b4\">━━━━━━━━━━━━━━━━━━━━━━━━</span>   2000    0             1.43        3            1394.57 draws/s   0:00:01   0:00:00    \n  <span style=\"color: #1f77b4; text-decoration-color: #1f77b4\">━━━━━━━━━━━━━━━━━━━━━━━━</span>   2000    0             1.34        3            1407.90 draws/s   0:00:01   0:00:00    \n  <span style=\"color: #1f77b4; text-decoration-color: #1f77b4\">━━━━━━━━━━━━━━━━━━━━━━━━</span>   2000    0             1.33        3            1267.02 draws/s   0:00:01   0:00:00    \n  <span style=\"color: #1f77b4; text-decoration-color: #1f77b4\">━━━━━━━━━━━━━━━━━━━━━━━━</span>   2000    0             1.06        3            1119.15 draws/s   0:00:01   0:00:00    \n                                                                                                                   \n</pre>\n","text/plain":"                                                                                                                   \n \u001b[1m \u001b[0m\u001b[1mProgress                \u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mDraws\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mDivergences\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mStep size\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mGrad evals\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mSampling Speed \u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mElapsed\u001b[0m\u001b[1m \u001b[0m \u001b[1m \u001b[0m\u001b[1mRemaining\u001b[0m\u001b[1m \u001b[0m \n ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── \n  \u001b[38;2;31;119;180m━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m   2000    0             1.43        3            1394.57 draws/s   0:00:01   0:00:00    \n  \u001b[38;2;31;119;180m━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m   2000    0             1.34        3            1407.90 draws/s   0:00:01   0:00:00    \n  \u001b[38;2;31;119;180m━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m   2000    0             1.33        3            1267.02 draws/s   0:00:01   0:00:00    \n  \u001b[38;2;31;119;180m━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m   2000    0             1.06        3            1119.15 draws/s   0:00:01   0:00:00    \n                                                                                                                   \n"},"metadata":{},"output_type":"display_data"}],"tabbable":null,"tooltip":null}}},"version_major":2,"version_minor":0}
 </script>
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
