@@ -1,0 +1,171 @@
+---
+title: "Setting up RStudio for Python & pyMC"
+author: "Matthew Hoctor"
+date: "2025-02-02"
+date-modified: last-modified
+license: "CC BY-SA 4.0"
+categories: 
+  - pyMC
+  - python
+  - RStudio
+  - setup
+  - Bayesian statistics
+
+code-fold: show
+
+ipynb-shell-interactivity: all    # https://quarto.org/docs/computations/execution-options.html#expression-printing
+
+draft: false
+freeze: true
+jupyter: python3
+---
+
+How does one go from a linux installation with python3 and RStudio to rendering .qmd files with python and pyMC code chunks?  In this blog post I document the steps I took to get these things set up.
+
+## Setting up Quarto to render python code chunks
+
+First, within RStudio [select a default python version for RStudio](https://docs.posit.co/ide/user/ide/guide/environments/py/python.html#selecting-a-default-version-of-python) (and un-check 'Automatically activate project-local Python environments'); and for good measure [create a keyboard shortcut](https://support.posit.co/hc/en-us/articles/206382178-Customizing-Keyboard-Shortcuts-in-the-RStudio-IDE) to insert python code chunks (I opted to remap Ctrl+Alt+P from 'Re-Run Previous Code Chunk Execution').
+
+RStudio [requires the `reticulate` package](https://rstudio.github.io/reticulate/articles/rstudio_ide.html) to execute python code chunks; it can be installed with `install.packages`:
+
+```{{r}}
+install.packages("reticulate")
+```
+
+In order to [render python code chunks](https://quarto.org/docs/computations/python.html) quarto requires the `jupyter` python package.  It can be installed with:
+
+```{{bash}}
+python3 -m pip install jupyter
+```
+
+To check if quarto thinks it's set up to render python chunks:
+
+```{bash}
+#| echo: fenced
+
+quarto check jupyter
+```
+
+Did it actually work?
+
+```{python}
+#| echo: fenced
+print("Hello World!")
+1+1
+```
+
+Apparently so.
+
+## Install python packages
+
+Which python packages will be needed to actually use pyMC?  Here are the ones I installed in advance:
+
+ - From the [Bayesian Analysis with Python](https://github.com/aloctavodia/BAP3?tab=readme-ov-file#environment-installation) packages:
+   - [pymc](https://pypi.org/project/pymc/); [optional dependencies listed here](https://pymcmc.readthedocs.io/en/latest/INSTALL.html#dependencies):
+      - [nose](https://pypi.org/project/nose/) optional, required for `pymc.test()`
+      - [pydot](https://pypi.org/project/pydot/) optional, interface to Graphiz; required for graphical representation of pyMC models; [graphiz](https://graphviz.org/) must be [installed](https://graphviz.org/download/) on the system, e.g. `sudo apt install graphviz
+` on Debian or Ubuntu linux
+   - [arviz](https://pypi.org/project/arviz/) model diagnostics, comparison, etc
+   - [bambi](https://pypi.org/project/bambi/) Wilkinson formulas for pyMC
+   - [kulprit](https://pypi.org/project/kulprit/) variable selection within Bambi models
+   - [pymc-bart](https://pypi.org/project/pymc-bart/) Bayesian Addative Regression Trees
+   - [preliz](https://pypi.org/project/preliz/) for choosing priors
+   - [nutpie](https://pypi.org/project/nutpie/) 'A fast sampler for Bayesian posteriors'
+ - Other packages:
+   - [numpy](https://pypi.org/project/numpy/) numerical analysis
+      - [scipy](https://pypi.org/project/scipy/) more numerical analysis
+   - [pandas](https://pypi.org/project/pandas/) MUNGE data
+   - [matplotlib](https://pypi.org/project/matplotlib/) data visualization
+      - [seaborn](https://pypi.org/project/seaborn/) more data vis for statistical models
+
+It would make too much sense to install python packages by calling pip from a python chunk, like so:
+
+```{{python}}
+pip install pymc bambi arviz kulprit pymc-bart preliz nutpie numpy scipy pandas matplotlib seaborn nose pydot
+```
+
+Unfortunately `reticulate` doesn't support this; but note that this chunk will run properly when rendered, as you will recall that quarto renders this with the `jupyter` python package.  Reticulate could be used, e.g. `reticulate::py_install("pymc",pip=TRUE)`, but nothing beats the good old command line:
+
+```{{bash}}
+python3 -m pip install pymc bambi arviz kulprit pymc-bart preliz nutpie numpy scipy pandas matplotlib seaborn nose pydot
+```
+
+The following outdated packages (`python3 pip list --outdated`) were updated:
+
+```{{bash}}
+python3 -m pip install pymc numpy scipy matplotlib matplotlib-inline -U
+```
+
+## pyMC example
+
+For this example we will recreate model 4.1 from the [Statistical Rethinking](http://xcelab.net/rm/statistical-rethinking/) text, as demonstrated in the [pymc resources](https://github.com/pymc-devs/pymc-resources/blob/main/Rethinking_2/Chp_04.ipynb):
+
+Setup the python libraries:
+
+```{python python_setup}
+import arviz as az
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import pymc as pm
+import scipy.stats as stats
+
+from scipy.interpolate import griddata
+```
+
+Readers who have already read Statistical Rethinking may recall that the Howell1 dataset contains demographic data (height, weight, age, gender) from Kalahari Kung San people.  Load the dataset:
+
+```{python Howell1}
+d = pd.read_csv("Howell1.csv", sep=";", header=0)
+d2 = d[d.age >= 18]
+```
+
+A mathematical description of model 4.1 ($h_i$ is the height of participant $i$):
+
+$$
+\begin{align}
+h_i &\sim \operatorname{Normal} (\mu, \sigma) \\
+\mu &\sim \operatorname{Normal} (178, 20) \\
+\sigma &\sim \operatorname{Uniform} (0, 50) \\
+\end{align}
+$$
+
+This model was translated into pyMC as:
+
+```{python m4_1}
+#| warning: false
+
+with pm.Model() as m4_1:
+    mu = pm.Normal("mu", mu=178, sigma=20)
+    sigma = pm.Uniform("sigma", lower=0, upper=50)
+    height = pm.Normal("height", mu=mu, sigma=sigma, observed=d2.height.values)
+    
+with m4_1:
+    trace_4_1 = pm.sample(1000, tune=1000)
+```
+
+Using arviz to summarize the results; first the trace plot:
+
+```{python m4_1_trace}
+#| column: screen
+#| out-width: 100%
+#| fig-align: center
+
+az.plot_trace(
+  trace_4_1, 
+  show="FALSE"           # don't show backend function
+)
+```
+
+And a data table summarizing the results:
+
+```{python m4_1_summary_table}
+az.summary(trace_4_1, round_to=2, kind="stats")
+```
+
+## Useful resources
+
+ - [Python in quarto](https://quarto.org/docs/computations/python.html)
+ - [pyMC resources](https://github.com/pymc-devs/pymc-resources/tree/main)
+   - [pymc-resources Statistical Rethinking environment](https://github.com/pymc-devs/pymc-resources/blob/main/Rethinking_2/environment_v4.yml)
+ - [reticulate cheatsheet](https://rstudio.github.io/cheatsheets/html/reticulate.html)
